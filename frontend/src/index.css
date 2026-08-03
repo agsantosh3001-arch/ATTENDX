@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* Light Theme - Golden White Canvas, Normal Brown Borders & Rich Gold Accents */
+    --background: 38 30% 97%;       /* Golden White / Warm Cream (#FAF7F2) */
+    --foreground: 24 50% 12%;       /* Dark Espresso Brown (#2D1A0E) */
+
+    --card: 38 40% 99%;             /* Pure Golden White (#FDFCF8) */
+    --card-foreground: 24 50% 12%;  /* Dark Espresso Brown */
+
+    --primary: 42 75% 45%;          /* Rich Metallic Gold (#C7951B) */
+    --primary-foreground: 38 40% 99%; /* Golden White */
+
+    --secondary: 26 30% 91%;        /* Normal Earthy Brown Soft Tint (#F0E8E1) */
+    --secondary-foreground: 24 50% 18%; /* Normal Dark Brown (#422817) */
+
+    --muted: 32 25% 92%;            /* Muted Cream (#F2ECE3) */
+    --muted-foreground: 26 22% 42%; /* Normal Earthy Brown Text (#826451) */
+
+    --accent: 40 65% 91%;           /* Soft Golden Accent (#F8EED8) */
+    --accent-foreground: 42 80% 38%;/* Deep Gold (#AD7F11) */
+
+    --destructive: 14 75% 48%;
+    --destructive-foreground: 38 40% 99%;
+
+    --border: 28 25% 85%;           /* Normal Brown Light Border (#E5D8CC) */
+    --input: 28 25% 85%;
+    --ring: 42 75% 45%;             /* Gold Ring */
+
+    --radius: 1rem;
+  }
+
+  .dark {
+    /* Dark Theme - Dark Brown #1A1009 Canvas, Dark Mahogany Cards & Vibrant Gold */
+    --background: 24 45% 7%;        /* Deep Dark Brown (#1A1009) */
+    --foreground: 38 35% 95%;       /* Golden White (#F8F5EF) */
+
+    --card: 25 36% 12%;             /* Dark Mahogany Brown Card (#291B12) */
+    --card-foreground: 38 35% 95%;  /* Golden White */
+
+    --primary: 42 85% 52%;          /* Vibrant Gold (#E6B429) */
+    --primary-foreground: 24 45% 7%;/* Dark Brown */
+
+    --secondary: 25 30% 19%;        /* Normal Dark Brown (#3D2619) */
+    --secondary-foreground: 38 35% 95%;
+
+    --muted: 25 25% 17%;            /* Deep Muted Brown (#382418) */
+    --muted-foreground: 30 18% 68%; /* Golden Taupe (#BBAE9F) */
+
+    --accent: 35 45% 21%;           /* Dark Gold-Brown Accent (#49351C) */
+    --accent-foreground: 42 85% 52%;/* Vibrant Gold */
+
+    --destructive: 14 70% 48%;
+    --destructive-foreground: 38 35% 95%;
+
+    --border: 25 28% 21%;           /* Normal Dark Brown Border (#452D1E) */
+    --input: 25 28% 21%;
+    --ring: 42 85% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1, "cv11" 1;
+  }
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+/* Enforced Card Padding & Border Uniformity */
+.card-standard {
+  @apply p-5 rounded-2xl border border-border bg-card shadow-sm transition-all;
+}
+
+/* Status System Utility Classes */
+.badge-presence {
+  @apply bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 font-bold;
+}
+
+.badge-solar {
+  @apply bg-amber-500/10 text-amber-500 border border-amber-500/30 font-bold;
+}
+
+.badge-meridian {
+  @apply bg-rose-500/10 text-rose-500 border border-rose-500/30 font-bold;
+}
+
+.badge-muted {
+  @apply bg-amber-900/10 text-amber-800 dark:text-amber-300 border border-amber-800/20 font-bold;
+}
+
+/* Metallic Gold & Dark Brown Text Gradient */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 dark:from-amber-300 dark:via-amber-400 dark:to-yellow-500 font-extrabold;
+}
+
+/* Chrono Radar Pattern Overlay */
+.chrono-radar-bg {
+  background-image: radial-gradient(circle at 50% 50%, rgba(230, 180, 41, 0.12) 0%, transparent 60%),
+                    radial-gradient(circle at 10px 10px, rgba(140, 90, 60, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 20px 20px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(197, 149, 27, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 149, 27, 0.6);
+}

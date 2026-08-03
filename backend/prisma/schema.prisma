@@ -1,0 +1,151 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  admin
+  employee
+}
+
+enum UserStatus {
+  pending
+  approved
+  rejected
+  deactivated
+}
+
+enum AttendanceStatus {
+  present
+  late
+  absent
+  half_day
+}
+
+enum NotificationType {
+  info
+  success
+  warning
+  error
+}
+
+model User {
+  id                  String     @id @default(uuid())
+  email               String     @unique
+  googleId            String?    @unique @map("google_id")
+  fullName            String?    @map("full_name")
+  passwordHash        String?    @map("password_hash")
+  role                Role       @default(employee)
+  status              UserStatus @default(pending)
+  department          String?
+  designation         String?
+  age                 Int?
+  phoneNumber         String?    @map("phone_number")
+  avatarUrl           String?    @map("avatar_url")
+  failedLoginAttempts Int        @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?  @map("locked_until")
+  createdAt           DateTime   @default(now()) @map("created_at")
+  updatedAt           DateTime   @updatedAt @map("updated_at")
+
+  sessions      Session[]
+  attendance    Attendance[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Session {
+  id               String   @id @default(uuid())
+  userId           String   @unique @map("user_id")
+  refreshTokenHash String   @map("refresh_token_hash")
+  ipAddress        String?  @map("ip_address")
+  userAgent        String?  @map("user_agent")
+  expiresAt        DateTime @map("expires_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model OfficeSettings {
+  id                         String   @id @default(uuid())
+  officeLatitude             Float    @map("office_latitude")
+  officeLongitude            Float    @map("office_longitude")
+  allowedRadiusMeters        Float    @default(150) @map("allowed_radius_meters")
+  gpsAccuracyThresholdMeters Float    @default(50) @map("gps_accuracy_threshold_meters")
+  officeStartTime            String   @default("09:00") @map("office_start_time")
+  officeEndTime              String   @default("18:00") @map("office_end_time")
+  timezone                   String   @default("Asia/Kolkata")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
+  @@map("office_settings")
+}
+
+model Attendance {
+  id                String           @id @default(uuid())
+  employeeId        String           @map("employee_id")
+  date              DateTime         @db.Date
+  checkInTime       DateTime?        @map("check_in_time")
+  checkInLatitude   Float?           @map("check_in_latitude")
+  checkInLongitude  Float?           @map("check_in_longitude")
+  checkInAccuracy   Float?           @map("check_in_accuracy")
+  checkOutTime      DateTime?        @map("check_out_time")
+  checkOutLatitude  Float?           @map("check_out_latitude")
+  checkOutLongitude Float?           @map("check_out_longitude")
+  checkOutAccuracy  Float?           @map("check_out_accuracy")
+  status            AttendanceStatus
+  isLate            Boolean          @default(false) @map("is_late")
+  lateReason        String?          @map("late_reason")
+  workingMinutes    Int?             @map("working_minutes")
+  formattedHours    String?          @map("formatted_hours")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  employee User @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@map("attendance")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  title     String
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  type      NotificationType
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  action    String
+  ipAddress String?  @map("ip_address")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+model Holiday {
+  id          String   @id @default(uuid())
+  date        DateTime @unique @db.Date
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("holidays")
+}
