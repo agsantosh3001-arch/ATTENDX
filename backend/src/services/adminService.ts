@@ -205,3 +205,16 @@ export async function updateOfficeSettings(
 
   return updated;
 }
+
+export async function getAuditLogs(limit: number = 50) {
+  const logs = await prisma.auditLog.findMany({
+    take: limit,
+    include: {
+      user: {
+        select: { id: true, email: true, fullName: true, role: true },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  return logs;
+}

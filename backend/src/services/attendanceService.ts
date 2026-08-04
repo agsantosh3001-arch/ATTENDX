@@ -235,36 +235,59 @@ export async function getAttendanceHistory(
   userId: string,
   userRole: string,
   query: {
-    page: number;
-    limit: number;
+    page?: number | string;
+    limit?: number | string;
     startDate?: string;
     endDate?: string;
     status?: 'present' | 'late' | 'absent' | 'half_day';
     employeeId?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
   }
 ) {
-  const targetEmployeeId = userRole === 'admin' && query.employeeId ? query.employeeId : userId;
-  const page = query.page || 1;
-  const limit = query.limit || 10;
-  const skip = (page - 1) * limit;
+  let targetEmployeeId: string | undefined = undefined;
+  if (userRole !== 'admin') {
+    targetEmployeeId = userId;
+  } else if (query.employeeId && query.employeeId !== 'all') {
+    targetEmployeeId = query.employeeId;
+  }
+
+  const page = Math.max(1, parseInt(String(query.page || 1), 10));
+  const isLimitAll = String(query.limit) === 'all';
+  const limit = isLimitAll ? 2000 : Math.max(1, parseInt(String(query.limit || 10), 10));
+  const skip = isLimitAll ? 0 : (page - 1) * limit;
 
   const whereClause: any = {};
 
-  if (userRole !== 'admin' || query.employeeId) {
+  if (targetEmployeeId) {
     whereClause.employeeId = targetEmployeeId;
   }
 
-  if (query.status) {
-    whereClause.status = query.status;
+  if (query.status && query.status.trim()) {
+    whereClause.status = query.status.trim();
   }
 
   if (query.startDate || query.endDate) {
     whereClause.date = {};
     if (query.startDate) whereClause.date.gte = new Date(query.startDate);
-    if (query.endDate) whereClause.date.lte = new Date(query.endDate);
+    if (query.endDate) {
+      const end = new Date(query.endDate);
+      end.setHours(23, 59, 59, 999);
+      whereClause.date.lte = end;
+    }
   }
 
-  const [items, total] = await Promise.all([
+  if (query.search && query.search.trim()) {
+    const searchTerm = query.search.trim();
+    whereClause.OR = [
+      { employee: { fullName: { contains: searchTerm, mode: 'insensitive' } } },
+      { employee: { email: { contains: searchTerm, mode: 'insensitive' } } },
+      { lateReason: { contains: searchTerm, mode: 'insensitive' } },
+    ];
+  }
+
+  const [items, total, presentCount, lateCount, halfDayCount, absentCount, totalWorkingMinsAggregate] = await Promise.all([
     prisma.attendance.findMany({
       where: whereClause,
       include: {
@@ -279,12 +302,24 @@ export async function getAttendanceHistory(
           },
         },
       },
-      orderBy: { date: 'desc' },
+      orderBy: { date: query.sortOrder === 'asc' ? 'asc' : 'desc' },
       skip,
       take: limit,
     }),
     prisma.attendance.count({ where: whereClause }),
+    prisma.attendance.count({ where: { ...whereClause, status: 'present' } }),
+    prisma.attendance.count({ where: { ...whereClause, status: 'late' } }),
+    prisma.attendance.count({ where: { ...whereClause, status: 'half_day' } }),
+    prisma.attendance.count({ where: { ...whereClause, status: 'absent' } }),
+    prisma.attendance.aggregate({
+      where: whereClause,
+      _sum: { workingMinutes: true },
+    }),
   ]);
+
+  const totalWorkingMinutes = totalWorkingMinsAggregate._sum.workingMinutes || 0;
+  const attendedDays = presentCount + lateCount + halfDayCount;
+  const avgWorkingMinutes = attendedDays > 0 ? Math.round(totalWorkingMinutes / attendedDays) : 0;
 
   return {
     records: items,
@@ -294,7 +329,18 @@ export async function getAttendanceHistory(
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPages: isLimitAll ? 1 : Math.ceil(total / limit) || 1,
+    },
+    summary: {
+      totalRecords: total,
+      presentCount,
+      lateCount,
+      halfDayCount,
+      absentCount,
+      totalWorkingMinutes,
+      totalWorkingHoursFormatted: formatWorkingHours(totalWorkingMinutes),
+      avgWorkingMinutes,
+      avgWorkingHoursFormatted: formatWorkingHours(avgWorkingMinutes),
     },
   };
 }

@@ -110,6 +110,9 @@ model Attendance {
   employee User @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, date])
+  @@index([date])
+  @@index([status])
+  @@index([employeeId, status, date])
   @@map("attendance")
 }
 

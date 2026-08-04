@@ -23,9 +23,17 @@ export async function connectDatabase(): Promise<void> {
         database: 'attendx',
         persistent: true,
       });
-      await embeddedPgInstance.initialise();
+      try {
+        await embeddedPgInstance.initialise();
+      } catch (initErr) {
+        // Ignore error if database cluster was already initialized
+      }
       await embeddedPgInstance.start();
-      await embeddedPgInstance.createDatabase('attendx');
+      try {
+        await embeddedPgInstance.createDatabase('attendx');
+      } catch (dbErr) {
+        // Ignore error if database already exists
+      }
       logger.info('Embedded PostgreSQL started on port 5432 with database attendx');
       await prisma.$connect();
       logger.info('Connected to embedded PostgreSQL via Prisma');

@@ -24,8 +24,9 @@ router.patch('/employees/:id/reject', adminController.rejectEmployee);
 router.post('/employees/:id/deactivate', adminController.deactivateEmployee);
 router.patch('/employees/:id/deactivate', adminController.deactivateEmployee);
 
-// Office settings
+// Office settings & Audit logs
 router.get('/settings', adminController.getSettings);
 router.put('/settings', validate(updateSettingsSchema), adminController.updateSettings);
+router.get('/audit-logs', adminController.getAuditLogs);
 
 export default router;

@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -51,7 +53,14 @@ app.use(helmet());
 // CORS configuration
 app.use(
   cors({
-    origin: config.frontendUrl,
+    origin: (origin, callback) => {
+      // Allow any local origin during development (e.g. 5173, 5174) or specified frontendUrl
+      if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin === config.frontendUrl) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
     credentials: true,
   })
 );
@@ -79,6 +88,42 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api', apiRouter);
+
+// Frontend User-Agent Static Routing Layer
+const mobileDistPath = path.join(__dirname, '../../mobile/dist');
+const desktopDistPath = path.join(__dirname, '../../frontend/dist');
+
+// Serve compiled static assets
+app.use('/assets', (req, res, next) => {
+  const ua = req.headers['user-agent'] || '';
+  const isMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const targetDist = isMobile && fs.existsSync(mobileDistPath) ? mobileDistPath : desktopDistPath;
+  express.static(path.join(targetDist, 'assets'))(req, res, next);
+});
+
+app.use(express.static(mobileDistPath, { index: false }));
+app.use(express.static(desktopDistPath, { index: false }));
+
+// Fallback index.html SPA router based on User-Agent header
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/health')) {
+    return next();
+  }
+
+  const ua = req.headers['user-agent'] || '';
+  const isMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+  if (isMobile && fs.existsSync(path.join(mobileDistPath, 'index.html'))) {
+    return res.sendFile(path.join(mobileDistPath, 'index.html'));
+  }
+
+  if (fs.existsSync(path.join(desktopDistPath, 'index.html'))) {
+    return res.sendFile(path.join(desktopDistPath, 'index.html'));
+  }
+
+  next();
+});
 
 // 404 Handler
 app.use((req, res, next) => {

@@ -119,3 +119,16 @@ export async function updateSettings(req: Request, res: Response, next: NextFunc
     next(error);
   }
 }
+
+export async function getAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+    const logs = await adminService.getAuditLogs(limit);
+    res.status(200).json({
+      success: true,
+      data: { logs },
+    });
+  } catch (error) {
+    next(error);
+  }
+}

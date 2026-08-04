@@ -1,68 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --font-display: 'Space Grotesk', sans-serif;
-    --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-display: 'Newsreader', 'Cinzel', Georgia, serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
-    /* Light Theme - Golden White Canvas, Normal Brown Borders & Rich Gold Accents */
-    --background: 38 30% 97%;       /* Golden White / Warm Cream (#FAF7F2) */
-    --foreground: 24 50% 12%;       /* Dark Espresso Brown (#2D1A0E) */
+    /* Claude Warm Canvas & Anthropic Coral Theme */
+    --background: 40 33% 97%;       /* Warm Cream Canvas (#FAF9F5) */
+    --foreground: 40 5% 8%;         /* Dark Warm Ink (#141413) */
 
-    --card: 38 40% 99%;             /* Pure Golden White (#FDFCF8) */
-    --card-foreground: 24 50% 12%;  /* Dark Espresso Brown */
+    --card: 38 33% 94%;             /* Light Cream Card Surface (#EFE9DE) */
+    --card-foreground: 40 5% 8%;    /* Dark Warm Ink */
 
-    --primary: 42 75% 45%;          /* Rich Metallic Gold (#C7951B) */
-    --primary-foreground: 38 40% 99%; /* Golden White */
+    --primary: 15 52% 58%;          /* Anthropic Warm Coral (#CC785C) */
+    --primary-foreground: 0 0% 100%;/* White */
 
-    --secondary: 26 30% 91%;        /* Normal Earthy Brown Soft Tint (#F0E8E1) */
-    --secondary-foreground: 24 50% 18%; /* Normal Dark Brown (#422817) */
+    --secondary: 35 25% 91%;        /* Surface Soft (#F5F0E8) */
+    --secondary-foreground: 40 5% 12%;
 
-    --muted: 32 25% 92%;            /* Muted Cream (#F2ECE3) */
-    --muted-foreground: 26 22% 42%; /* Normal Earthy Brown Text (#826451) */
+    --muted: 36 15% 88%;
+    --muted-foreground: 36 6% 42%;  /* Muted Text (#6C6A64) */
 
-    --accent: 40 65% 91%;           /* Soft Golden Accent (#F8EED8) */
-    --accent-foreground: 42 80% 38%;/* Deep Gold (#AD7F11) */
+    --accent: 15 52% 58%;           /* Coral Accent */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 14 75% 48%;
-    --destructive-foreground: 38 40% 99%;
+    --destructive: 0 54% 52%;       /* Editorial Error Red (#C64545) */
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 28 25% 85%;           /* Normal Brown Light Border (#E5D8CC) */
-    --input: 28 25% 85%;
-    --ring: 42 75% 45%;             /* Gold Ring */
+    --border: 32 20% 86%;           /* Hairline Border (#E6DFD8) */
+    --input: 32 20% 86%;
+    --ring: 15 52% 58%;
 
-    --radius: 1rem;
+    --radius: 0.85rem;
   }
 
   .dark {
-    /* Dark Theme - Dark Brown #1A1009 Canvas, Dark Mahogany Cards & Vibrant Gold */
-    --background: 24 45% 7%;        /* Deep Dark Brown (#1A1009) */
-    --foreground: 38 35% 95%;       /* Golden White (#F8F5EF) */
+    /* Claude Dark Navy Product Surface Theme */
+    --background: 30 10% 8%;        /* Dark Navy Surface (#181715) */
+    --foreground: 40 25% 97%;       /* Cream On Dark (#FAF9F5) */
 
-    --card: 25 36% 12%;             /* Dark Mahogany Brown Card (#291B12) */
-    --card-foreground: 38 35% 95%;  /* Golden White */
+    --card: 30 8% 13%;             /* Surface Dark Elevated (#252320) */
+    --card-foreground: 40 25% 97%;
 
-    --primary: 42 85% 52%;          /* Vibrant Gold (#E6B429) */
-    --primary-foreground: 24 45% 7%;/* Dark Brown */
+    --primary: 15 52% 58%;          /* Anthropic Warm Coral (#CC785C) */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 25 30% 19%;        /* Normal Dark Brown (#3D2619) */
-    --secondary-foreground: 38 35% 95%;
+    --secondary: 30 6% 18%;
+    --secondary-foreground: 40 25% 97%;
 
-    --muted: 25 25% 17%;            /* Deep Muted Brown (#382418) */
-    --muted-foreground: 30 18% 68%; /* Golden Taupe (#BBAE9F) */
+    --muted: 30 6% 20%;
+    --muted-foreground: 35 6% 62%;
 
-    --accent: 35 45% 21%;           /* Dark Gold-Brown Accent (#49351C) */
-    --accent-foreground: 42 85% 52%;/* Vibrant Gold */
+    --accent: 15 52% 58%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 14 70% 48%;
-    --destructive-foreground: 38 35% 95%;
+    --destructive: 0 54% 52%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 25 28% 21%;           /* Normal Dark Brown Border (#452D1E) */
-    --input: 25 28% 21%;
-    --ring: 42 85% 52%;
+    --border: 30 6% 22%;
+    --input: 30 6% 22%;
+    --ring: 15 52% 58%;
   }
 }
 
@@ -72,12 +74,15 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    background-color: #faf9f5;
+    color: #141413;
     font-family: var(--font-sans);
     font-feature-settings: "rlig" 1, "calt" 1, "cv11" 1;
   }
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    font-weight: 500;
   }
   code, pre, .font-mono {
     font-family: var(--font-mono);
@@ -91,31 +96,24 @@
 
 /* Status System Utility Classes */
 .badge-presence {
-  @apply bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 font-bold;
+  @apply bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold;
 }
 
 .badge-solar {
-  @apply bg-amber-500/10 text-amber-500 border border-amber-500/30 font-bold;
+  @apply bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-bold;
 }
 
 .badge-meridian {
-  @apply bg-rose-500/10 text-rose-500 border border-rose-500/30 font-bold;
+  @apply bg-destructive/10 text-destructive border border-destructive/20 font-bold;
 }
 
 .badge-muted {
-  @apply bg-amber-900/10 text-amber-800 dark:text-amber-300 border border-amber-800/20 font-bold;
+  @apply bg-muted text-muted-foreground border border-border font-bold;
 }
 
-/* Metallic Gold & Dark Brown Text Gradient */
+/* Anthropic Coral Text Accent */
 .gradient-text {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-amber-400 to-amber-600 dark:from-amber-300 dark:via-amber-400 dark:to-yellow-500 font-extrabold;
-}
-
-/* Chrono Radar Pattern Overlay */
-.chrono-radar-bg {
-  background-image: radial-gradient(circle at 50% 50%, rgba(230, 180, 41, 0.12) 0%, transparent 60%),
-                    radial-gradient(circle at 10px 10px, rgba(140, 90, 60, 0.05) 1px, transparent 1px);
-  background-size: 100% 100%, 20px 20px;
+  @apply text-primary font-extrabold;
 }
 
 /* Custom Scrollbar */
@@ -129,10 +127,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(197, 149, 27, 0.3);
+  background: rgba(204, 120, 92, 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(197, 149, 27, 0.6);
+  background: rgba(204, 120, 92, 0.6);
 }

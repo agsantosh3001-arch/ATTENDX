@@ -59,7 +59,85 @@ async function seedData() {
     },
   });
   console.log(`Admin user created/updated: ${admin.email}`);
-  console.log('Seed completed. No mock employees created.');
+
+  // 3. Approved Employee: VIVAN
+  const vivan = await prisma.user.upsert({
+    where: { email: 'vivaninteriors@gmail.com' },
+    update: {
+      role: 'employee',
+      status: 'approved',
+      department: 'Engineering',
+      designation: 'Senior Lead Architect',
+    },
+    create: {
+      email: 'vivaninteriors@gmail.com',
+      googleId: 'google_mock_vivan',
+      fullName: 'VIVAN',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=VIVAN',
+      role: 'employee',
+      status: 'approved',
+      department: 'Engineering',
+      designation: 'Senior Lead Architect',
+      age: 28,
+      phoneNumber: '+91 9876543210',
+    },
+  });
+  console.log(`Approved employee created/updated: ${vivan.email}`);
+
+  // 4. Approved Employee: Alex Rivera
+  const alex = await prisma.user.upsert({
+    where: { email: 'alex.rivera@attendx.com' },
+    update: {
+      role: 'employee',
+      status: 'approved',
+      department: 'Product & Design',
+      designation: 'Senior Product Manager',
+    },
+    create: {
+      email: 'alex.rivera@attendx.com',
+      googleId: 'google_mock_alex',
+      fullName: 'Alex Rivera',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
+      role: 'employee',
+      status: 'approved',
+      department: 'Product & Design',
+      designation: 'Senior Product Manager',
+      age: 30,
+      phoneNumber: '+91 9876543211',
+    },
+  });
+  console.log(`Approved employee created/updated: ${alex.email}`);
+
+  // 5. Pending Employee: Sarah Connor
+  const sarah = await prisma.user.upsert({
+    where: { email: 'sarah.connor@attendx.com' },
+    update: {
+      role: 'employee',
+      status: 'pending',
+      department: 'Operations',
+      designation: 'Operations Specialist',
+    },
+    create: {
+      email: 'sarah.connor@attendx.com',
+      googleId: 'google_mock_sarah',
+      fullName: 'Sarah Connor',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+      role: 'employee',
+      status: 'pending',
+      department: 'Operations',
+      designation: 'Operations Specialist',
+      age: 26,
+      phoneNumber: '+91 9876543212',
+    },
+  });
+  console.log(`Pending employee created/updated: ${sarah.email}`);
+
+  console.log(`Pending employee created/updated: ${sarah.email}`);
+
+  // Clean out sample/synthetic attendance records so only actual live and preceding entries remain
+  const deleted = await prisma.attendance.deleteMany({});
+  console.log(`Cleared ${deleted.count} sample/mock attendance records from database.`);
+  console.log('Seed completed successfully with live/clean data state.');
 }
 
 async function startAndSeed() {
@@ -92,3 +170,4 @@ async function startAndSeed() {
 }
 
 startAndSeed();
+

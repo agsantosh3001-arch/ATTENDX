@@ -172,6 +172,7 @@ export async function processGoogleAuthUser(profile: {
   });
 
   if (!user) {
+    const isApprovedPreset = ['vivaninteriors@gmail.com', 'alex.rivera@attendx.com'].includes(profile.email.toLowerCase());
     user = await prisma.user.create({
       data: {
         email: profile.email.toLowerCase(),
@@ -179,7 +180,9 @@ export async function processGoogleAuthUser(profile: {
         fullName: profile.fullName,
         avatarUrl: profile.avatarUrl || null,
         role: 'employee',
-        status: 'pending',
+        status: isApprovedPreset ? 'approved' : 'pending',
+        department: isApprovedPreset ? (profile.email.includes('vivan') ? 'Engineering' : 'Product & Design') : null,
+        designation: isApprovedPreset ? (profile.email.includes('vivan') ? 'Senior Lead Architect' : 'Senior Product Manager') : null,
       },
     });
   } else if (!user.googleId) {
