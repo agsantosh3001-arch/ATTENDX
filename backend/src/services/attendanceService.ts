@@ -372,12 +372,12 @@ export async function getMonthlyStats(
     where: whereClause,
   });
 
-  const presentCount = records.filter((r) => r.status === 'present').length;
-  const lateCount = records.filter((r) => r.status === 'late').length;
-  const absentCount = records.filter((r) => r.status === 'absent').length;
-  const halfDayCount = records.filter((r) => r.status === 'half_day').length;
+  const presentCount = records.filter((r: any) => r.status === 'present').length;
+  const lateCount = records.filter((r: any) => r.status === 'late').length;
+  const absentCount = records.filter((r: any) => r.status === 'absent').length;
+  const halfDayCount = records.filter((r: any) => r.status === 'half_day').length;
 
-  const totalWorkingMinutes = records.reduce((acc, r) => acc + (r.workingMinutes || 0), 0);
+  const totalWorkingMinutes = records.reduce((acc: number, r: any) => acc + (r.workingMinutes || 0), 0);
   const totalAttendedDays = presentCount + lateCount + halfDayCount;
   const avgWorkingMinutes = totalAttendedDays > 0 ? Math.round(totalWorkingMinutes / totalAttendedDays) : 0;
   const avgFormattedHours = formatWorkingHours(avgWorkingMinutes);

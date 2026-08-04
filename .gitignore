@@ -36,3 +36,4 @@ backend/data/
 *.sln
 *.sw?
 .idea/
+.vercel

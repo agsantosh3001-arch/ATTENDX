@@ -131,7 +131,7 @@ export async function generateCsvReport(adminUserId: string, filter: ReportFilte
   });
 
   const headers = ['Date', 'Employee Name', 'Email', 'Department', 'Check In', 'Check Out', 'Working Hours', 'Status', 'Late Reason'];
-  const rows = records.map((r) => [
+  const rows = records.map((r: any) => [
     format(r.date, 'yyyy-MM-dd'),
     `"${r.employee.fullName || ''}"`,
     `"${r.employee.email}"`,
@@ -143,7 +143,7 @@ export async function generateCsvReport(adminUserId: string, filter: ReportFilte
     `"${(r.lateReason || '').replace(/"/g, '""')}"`,
   ]);
 
-  const csvString = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+  const csvString = [headers.join(','), ...rows.map((row: any) => row.join(','))].join('\n');
 
   await logAuditEvent(adminUserId, 'report.generated', ipAddress, { format: 'csv', month: filter.month, year: filter.year });
 
@@ -191,7 +191,7 @@ export async function generateExcelReport(adminUserId: string, filter: ReportFil
     fgColor: { argb: '1E40AF' },
   };
 
-  records.forEach((r) => {
+  records.forEach((r: any) => {
     worksheet.addRow({
       date: format(r.date, 'yyyy-MM-dd'),
       name: r.employee.fullName || '—',
@@ -254,7 +254,7 @@ export async function generatePdfReport(adminUserId: string, filter: ReportFilte
       doc.text('Date          Name                      Department      Status        Working Hours');
       doc.text('----------------------------------------------------------------------------------');
 
-      records.forEach((r) => {
+      records.forEach((r: any) => {
         const d = format(r.date, 'yyyy-MM-dd');
         const name = (r.employee.fullName || r.employee.email).slice(0, 20).padEnd(25, ' ');
         const dept = (r.employee.department || 'N/A').slice(0, 14).padEnd(16, ' ');

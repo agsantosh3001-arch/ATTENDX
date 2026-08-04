@@ -10,7 +10,7 @@ export async function approveEmployee(employeeId: string, adminUserId: string, i
     throw new AppError('EMPLOYEE_NOT_FOUND', 404, 'Employee not found');
   }
 
-  const updatedEmployee = await prisma.$transaction(async (tx) => {
+  const updatedEmployee = await prisma.$transaction(async (tx: any) => {
     const updated = await tx.user.update({
       where: { id: employeeId },
       data: { status: 'approved' },
@@ -50,7 +50,7 @@ export async function rejectEmployee(employeeId: string, adminUserId: string, ip
     throw new AppError('EMPLOYEE_NOT_FOUND', 404, 'Employee not found');
   }
 
-  const updatedEmployee = await prisma.$transaction(async (tx) => {
+  const updatedEmployee = await prisma.$transaction(async (tx: any) => {
     const updated = await tx.user.update({
       where: { id: employeeId },
       data: { status: 'rejected' },
@@ -90,7 +90,7 @@ export async function deactivateEmployee(employeeId: string, adminUserId: string
     throw new AppError('EMPLOYEE_NOT_FOUND', 404, 'Employee not found');
   }
 
-  const updatedEmployee = await prisma.$transaction(async (tx) => {
+  const updatedEmployee = await prisma.$transaction(async (tx: any) => {
     const updated = await tx.user.update({
       where: { id: employeeId },
       data: { status: 'deactivated' },
