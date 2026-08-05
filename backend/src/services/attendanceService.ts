@@ -287,7 +287,7 @@ export async function getAttendanceHistory(
     ];
   }
 
-  const [items, total, presentCount, lateCount, halfDayCount, absentCount, totalWorkingMinsAggregate] = await Promise.all([
+  const [items, total, statusGroups] = await Promise.all([
     prisma.attendance.findMany({
       where: whereClause,
       include: {
@@ -307,17 +307,30 @@ export async function getAttendanceHistory(
       take: limit,
     }),
     prisma.attendance.count({ where: whereClause }),
-    prisma.attendance.count({ where: { ...whereClause, status: 'present' } }),
-    prisma.attendance.count({ where: { ...whereClause, status: 'late' } }),
-    prisma.attendance.count({ where: { ...whereClause, status: 'half_day' } }),
-    prisma.attendance.count({ where: { ...whereClause, status: 'absent' } }),
-    prisma.attendance.aggregate({
+    prisma.attendance.groupBy({
+      by: ['status'],
       where: whereClause,
+      _count: { _all: true },
       _sum: { workingMinutes: true },
     }),
   ]);
 
-  const totalWorkingMinutes = totalWorkingMinsAggregate._sum.workingMinutes || 0;
+  let presentCount = 0;
+  let lateCount = 0;
+  let halfDayCount = 0;
+  let absentCount = 0;
+  let totalWorkingMinutes = 0;
+
+  for (const group of statusGroups) {
+    const count = group._count._all || 0;
+    const mins = group._sum.workingMinutes || 0;
+    totalWorkingMinutes += mins;
+    if (group.status === 'present') presentCount = count;
+    else if (group.status === 'late') lateCount = count;
+    else if (group.status === 'half_day') halfDayCount = count;
+    else if (group.status === 'absent') absentCount = count;
+  }
+
   const attendedDays = presentCount + lateCount + halfDayCount;
   const avgWorkingMinutes = attendedDays > 0 ? Math.round(totalWorkingMinutes / attendedDays) : 0;
 
@@ -370,6 +383,10 @@ export async function getMonthlyStats(
 
   const records = await prisma.attendance.findMany({
     where: whereClause,
+    select: {
+      status: true,
+      workingMinutes: true,
+    },
   });
 
   const presentCount = records.filter((r: any) => r.status === 'present').length;

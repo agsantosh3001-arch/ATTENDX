@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { BottomSheet } from '../components/ui/BottomSheet';
+import { LiveTimer } from '../components/attendance/LiveTimer';
 import {
   Bell,
   MapPin,
@@ -301,15 +302,7 @@ export const EmployeeDashboard: React.FC = () => {
             </div>
 
             {/* Hero Live Tabular Timer */}
-            <div className="space-y-1 py-1">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Elapsed Shift Duration</p>
-              <p className="text-4xl sm:text-5xl font-black font-mono tracking-wider text-foreground">
-                {formatTimer(elapsedSeconds)}
-              </p>
-              <p className="text-xs font-semibold text-muted-foreground pt-1">
-                Checked in at {new Date(todayData.attendance!.checkInTime!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            </div>
+            <LiveTimer checkInTime={todayData.attendance!.checkInTime!} isLate={todayData.attendance?.isLate} />
 
             <Button
               variant="destructive"

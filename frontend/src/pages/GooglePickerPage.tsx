@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { UserAvatar } from '../components/ui/UserAvatar';
 import { User, Plus, ArrowRight, ShieldCheck, Sparkles, Check } from 'lucide-react';
 
 const PRESET_ACCOUNTS = [
@@ -100,7 +101,7 @@ export const GooglePickerPage: React.FC = () => {
                   onClick={() => handleSelectAccount(acc.email, acc.name.split(' (')[0])}
                   className="w-full p-4 flex items-center gap-3.5 text-left hover:bg-muted/60 transition-all group"
                 >
-                  <img src={acc.avatar} alt={acc.name} className="w-11 h-11 rounded-full border border-border bg-muted shrink-0 object-cover group-hover:scale-105 transition-transform" />
+                  <UserAvatar name={acc.name} email={acc.email} />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
                       {acc.name}

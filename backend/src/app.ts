@@ -93,12 +93,15 @@ app.use('/api', apiRouter);
 const mobileDistPath = path.join(__dirname, '../../mobile/dist');
 const desktopDistPath = path.join(__dirname, '../../frontend/dist');
 
-// Serve compiled static assets
+// Serve compiled static assets with immutable cache headers
 app.use('/assets', (req, res, next) => {
   const ua = req.headers['user-agent'] || '';
   const isMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
   const targetDist = isMobile && fs.existsSync(mobileDistPath) ? mobileDistPath : desktopDistPath;
-  express.static(path.join(targetDist, 'assets'))(req, res, next);
+  express.static(path.join(targetDist, 'assets'), {
+    maxAge: '1y',
+    immutable: true,
+  })(req, res, next);
 });
 
 app.use(express.static(mobileDistPath, { index: false }));

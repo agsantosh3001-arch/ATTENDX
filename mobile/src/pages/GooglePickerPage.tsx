@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { UserAvatar } from '../components/ui/UserAvatar';
 import { ArrowRight, Plus } from 'lucide-react';
 
 const PRESET_ACCOUNTS = [
@@ -87,11 +88,7 @@ export const GooglePickerPage: React.FC = () => {
                   onClick={() => handleSelectAccount(acc.email, acc.name.split(' (')[0])}
                   className="w-full p-4 flex items-center gap-3.5 text-left hover:bg-muted/60 active:bg-muted transition-all"
                 >
-                  <img
-                    src={acc.avatar}
-                    alt={acc.name}
-                    className="w-10 h-10 rounded-full border border-border bg-muted shrink-0 object-cover"
-                  />
+                  <UserAvatar name={acc.name} email={acc.email} />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-xs text-foreground truncate">{acc.name}</p>
                     <p className="text-[11px] text-muted-foreground truncate">{acc.email}</p>
