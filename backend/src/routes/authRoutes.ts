@@ -19,10 +19,54 @@ router.post(
   authController.adminLogin
 );
 
+// Helper to extract client origin dynamically from request headers or auth cookie
+const getClientOrigin = (req: Request): string => {
+  if (req.cookies?.client_origin) {
+    return req.cookies.client_origin;
+  }
+
+  const referer = req.headers.referer || req.headers.origin;
+  if (referer) {
+    try {
+      const url = new URL(referer);
+      return url.origin;
+    } catch {
+      // ignore
+    }
+  }
+
+  const host = req.headers.host;
+  if (host) {
+    const protocol = req.protocol || 'http';
+    return `${protocol}://${host}`;
+  }
+
+  return config.frontendUrl;
+};
+
 // Google OAuth Trigger
 router.get('/google', (req: Request, res: Response, next: NextFunction) => {
+  const referer = req.headers.referer || req.headers.origin;
+  let clientOrigin = config.frontendUrl;
+  if (referer) {
+    try {
+      clientOrigin = new URL(referer).origin;
+    } catch {
+      // ignore
+    }
+  } else if (req.headers.host) {
+    clientOrigin = `${req.protocol || 'http'}://${req.headers.host}`;
+  }
+
+  res.cookie('client_origin', clientOrigin, {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
+    maxAge: 10 * 60 * 1000,
+  });
+
   if (config.googleClientId === 'mock_google_client_id') {
-    return res.redirect(`${config.frontendUrl}/google-picker`);
+    return res.redirect(`${clientOrigin}/google-picker`);
   }
   passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
@@ -45,6 +89,7 @@ router.get('/google/dev-select', async (req: Request, res: Response, next: NextF
     const ipAddress = req.ip || req.socket.remoteAddress;
     const userAgent = req.headers['user-agent'];
     const sessionResult = await authService.completeEmployeeSession(user.id, ipAddress, userAgent);
+    const clientOrigin = getClientOrigin(req);
 
     res.cookie('refreshToken', sessionResult.refreshToken, {
       httpOnly: true,
@@ -54,14 +99,14 @@ router.get('/google/dev-select', async (req: Request, res: Response, next: NextF
     });
 
     if (!user.department || !user.designation) {
-      return res.redirect(`${config.frontendUrl}/onboarding?token=${sessionResult.accessToken}`);
+      return res.redirect(`${clientOrigin}/onboarding?token=${sessionResult.accessToken}`);
     }
 
     if (user.status === 'pending') {
-      return res.redirect(`${config.frontendUrl}/pending-approval?token=${sessionResult.accessToken}`);
+      return res.redirect(`${clientOrigin}/pending-approval?token=${sessionResult.accessToken}`);
     }
 
-    res.redirect(`${config.frontendUrl}/dashboard?token=${sessionResult.accessToken}`);
+    res.redirect(`${clientOrigin}/dashboard?token=${sessionResult.accessToken}`);
   } catch (error) {
     next(error);
   }
@@ -71,9 +116,11 @@ router.get('/google/dev-select', async (req: Request, res: Response, next: NextF
 router.get(
   '/google/callback',
   (req: Request, res: Response, next: NextFunction) => {
+    const clientOrigin = getClientOrigin(req);
+
     passport.authenticate('google', { session: false }, async (err, user) => {
       if (err || !user) {
-        return res.redirect(`${config.frontendUrl}/login?error=google_auth_failed`);
+        return res.redirect(`${clientOrigin}/login?error=google_auth_failed`);
       }
 
       try {
@@ -90,22 +137,22 @@ router.get(
 
         // Route user based on profile state and approval status
         if (!user.department || !user.designation) {
-          return res.redirect(`${config.frontendUrl}/onboarding?token=${sessionResult.accessToken}`);
+          return res.redirect(`${clientOrigin}/onboarding?token=${sessionResult.accessToken}`);
         }
 
         if (user.status === 'pending') {
-          return res.redirect(`${config.frontendUrl}/pending-approval?token=${sessionResult.accessToken}`);
+          return res.redirect(`${clientOrigin}/pending-approval?token=${sessionResult.accessToken}`);
         }
 
         if (user.status === 'rejected') {
-          return res.redirect(`${config.frontendUrl}/rejected`);
+          return res.redirect(`${clientOrigin}/rejected`);
         }
 
         if (user.status === 'deactivated') {
-          return res.redirect(`${config.frontendUrl}/deactivated`);
+          return res.redirect(`${clientOrigin}/deactivated`);
         }
 
-        res.redirect(`${config.frontendUrl}/dashboard?token=${sessionResult.accessToken}`);
+        res.redirect(`${clientOrigin}/dashboard?token=${sessionResult.accessToken}`);
       } catch (error) {
         next(error);
       }
