@@ -4,7 +4,7 @@ import { clsx } from 'clsx';
 export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ className, ...props }) => (
   <div
     className={clsx(
-      'rounded-2xl border border-border bg-card text-card-foreground shadow-sm transition-all',
+      'rounded-xl border border-border bg-card text-card-foreground transition-all',
       className
     )}
     {...props}
@@ -16,7 +16,7 @@ export const CardHeader: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({ cla
 );
 
 export const CardTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({ className, ...props }) => (
-  <h3 className={clsx('font-display text-lg font-bold leading-tight tracking-tight text-foreground', className)} {...props} />
+  <h3 className={clsx('font-sans text-lg font-medium leading-tight text-foreground', className)} {...props} />
 );
 
 export const CardDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement>> = ({ className, ...props }) => (

@@ -136,43 +136,29 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
       )}
 
       {buttonState === 'CAN_CHECK_IN' && (
-        <button
-          type="button"
-          disabled={loading}
+        <Button
+          variant="primary"
+          size="lg"
           onClick={handleAction}
-          className="group relative w-full h-16 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 p-0.5 font-bold text-white shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-60"
+          isLoading={loading}
+          className="w-full text-base font-medium rounded-lg"
+          leftIcon={<LogIn className="w-5 h-5" />}
         >
-          <div className="flex h-full w-full items-center justify-center gap-3 rounded-[14px] bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 px-6 text-base font-extrabold tracking-wide">
-            {loading ? (
-              <RefreshCw className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <LogIn className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                <span>Punch Check In</span>
-              </>
-            )}
-          </div>
-        </button>
+          Punch Check In
+        </Button>
       )}
 
       {buttonState === 'CAN_CHECK_OUT' && (
-        <button
-          type="button"
-          disabled={loading}
+        <Button
+          variant="secondary"
+          size="lg"
           onClick={handleAction}
-          className="group relative w-full h-16 rounded-2xl bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 p-0.5 font-bold text-white shadow-xl hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-60"
+          isLoading={loading}
+          className="w-full text-base font-medium rounded-lg"
+          leftIcon={<LogOut className="w-5 h-5" />}
         >
-          <div className="flex h-full w-full items-center justify-center gap-3 rounded-[14px] bg-gradient-to-r from-rose-600 via-pink-600 to-amber-600 px-6 text-base font-extrabold tracking-wide">
-            {loading ? (
-              <RefreshCw className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <LogOut className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                <span>Punch Check Out</span>
-              </>
-            )}
-          </div>
-        </button>
+          Punch Check Out
+        </Button>
       )}
 
       {buttonState === 'LATE_REASON_REQUIRED' && (

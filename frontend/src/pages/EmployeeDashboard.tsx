@@ -58,13 +58,13 @@ export const EmployeeDashboard: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans">
       {/* Header Telemetry Banner */}
-      <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-card p-6 sm:p-8 rounded-3xl border border-border shadow-md">
+      <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-card p-6 sm:p-8 rounded-xl border border-border">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold font-sans">
             <Radio className="w-3.5 h-3.5 animate-pulse" />
             <span className="uppercase tracking-widest text-[10px]">Chrono Telemetry Terminal</span>
           </div>
-          <h1 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+          <h1 className="font-display text-3xl sm:text-5xl font-normal tracking-tighter text-foreground">
             Welcome, {user?.fullName || user?.email}
           </h1>
           <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-muted-foreground pt-1">
@@ -99,9 +99,9 @@ export const EmployeeDashboard: React.FC = () => {
             checkOutTime={todayData?.attendance?.checkOutTime}
           />
 
-          <Card className="p-5 border-border bg-card shadow-sm rounded-2xl">
+          <Card className="p-6">
             <CardHeader className="p-0 pb-4">
-              <CardTitle className="font-display text-lg font-bold flex items-center justify-between">
+              <CardTitle className="flex items-center justify-between">
                 <span className="flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-primary" />
                   Today's Punch Console
@@ -132,40 +132,52 @@ export const EmployeeDashboard: React.FC = () => {
 
           {/* Today's Punch Summary Details */}
           {todayData?.attendance && (
-            <Card className="p-5 border-border bg-card shadow-sm rounded-2xl">
-              <CardHeader className="p-0 pb-4">
-                <CardTitle className="font-display text-base font-bold">Shift Telemetry Log</CardTitle>
+            <Card className="p-6">
+            <CardHeader className="p-0 pb-4">
+                <CardTitle>Shift Telemetry Log</CardTitle>
               </CardHeader>
               <CardContent className="p-0 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-1">
-                  <p className="text-muted-foreground font-bold">Check In Time</p>
-                  <p className="font-bold text-sm text-foreground font-mono">
+                <div className="p-4 rounded-xl bg-card border border-border flex flex-col items-center justify-center text-center space-y-1 hover:border-primary/50 transition-colors shadow-sm relative overflow-hidden group">
+                  <div className="absolute -bottom-2 -right-2 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                    <Clock className="w-12 h-12 text-primary" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest relative z-10">Check In</p>
+                  <p className="font-bold text-lg text-foreground font-mono relative z-10">
                     {todayData.attendance.checkInTime
                       ? new Date(todayData.attendance.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                       : '—'}
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-1">
-                  <p className="text-muted-foreground font-bold">Check Out Time</p>
-                  <p className="font-bold text-sm text-foreground font-mono">
+                <div className="p-4 rounded-xl bg-card border border-border flex flex-col items-center justify-center text-center space-y-1 hover:border-primary/50 transition-colors shadow-sm relative overflow-hidden group">
+                  <div className="absolute -bottom-2 -right-2 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                    <History className="w-12 h-12 text-primary" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest relative z-10">Check Out</p>
+                  <p className="font-bold text-lg text-foreground font-mono relative z-10">
                     {todayData.attendance.checkOutTime
                       ? new Date(todayData.attendance.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                       : '—'}
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-1">
-                  <p className="text-muted-foreground font-bold">Working Hours</p>
-                  <p className="font-extrabold text-sm text-foreground font-mono">
+                <div className="p-4 rounded-xl bg-card border border-border flex flex-col items-center justify-center text-center space-y-1 hover:border-primary/50 transition-colors shadow-sm relative overflow-hidden group">
+                  <div className="absolute -bottom-2 -right-2 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                    <CheckCircle className="w-12 h-12 text-emerald-500" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest relative z-10">Hours</p>
+                  <p className="font-extrabold text-lg text-foreground font-mono relative z-10">
                     {todayData.attendance.formattedHours || '—'}
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-1">
-                  <p className="text-muted-foreground font-bold">Arrival Punctuality</p>
-                  <p className={`font-extrabold text-sm ${todayData.attendance.isLate ? 'text-amber-500' : 'text-emerald-500'}`}>
-                    {todayData.attendance.isLate ? 'Late Arrival' : 'On Time'}
+                <div className="p-4 rounded-xl bg-card border border-border flex flex-col items-center justify-center text-center space-y-1 hover:border-primary/50 transition-colors shadow-sm relative overflow-hidden group">
+                  <div className="absolute -bottom-2 -right-2 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                    <AlertCircle className={`w-12 h-12 ${todayData.attendance.isLate ? 'text-amber-500' : 'text-emerald-500'}`} />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest relative z-10">Punctuality</p>
+                  <p className={`font-extrabold text-lg relative z-10 ${todayData.attendance.isLate ? 'text-amber-500' : 'text-emerald-500'}`}>
+                    {todayData.attendance.isLate ? 'Late' : 'On Time'}
                   </p>
                 </div>
               </CardContent>
@@ -176,9 +188,9 @@ export const EmployeeDashboard: React.FC = () => {
         {/* Right Col: Office Settings & Recent History */}
         <div className="space-y-6">
           {/* Office Rules */}
-          <Card className="p-5 border-border bg-card shadow-sm rounded-2xl">
+          <Card className="p-6">
             <CardHeader className="p-0 pb-4">
-              <CardTitle className="font-display text-base font-bold flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-primary" />
                 Office Geofence Info
               </CardTitle>
@@ -212,9 +224,9 @@ export const EmployeeDashboard: React.FC = () => {
           </Card>
 
           {/* Recent Punch History */}
-          <Card className="p-5 border-border bg-card shadow-sm rounded-2xl">
+          <Card className="p-6">
             <CardHeader className="p-0 pb-4 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="font-display text-base font-bold flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2">
                 <History className="w-5 h-5 text-primary" />
                 Recent History
               </CardTitle>

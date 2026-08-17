@@ -52,7 +52,7 @@ export const ProfilePage: React.FC = () => {
       </div>
 
       {/* Account Details Card */}
-      <Card className="border-border bg-card shadow-xs rounded-3xl overflow-hidden">
+      <Card className="overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-bold">Profile Information</CardTitle>
           {!editing ? (

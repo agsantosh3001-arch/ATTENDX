@@ -53,7 +53,7 @@ export const OnboardingPage: React.FC = () => {
           </p>
         </div>
 
-        <Card className="shadow-lg border-border bg-card rounded-3xl">
+        <Card>
           <form onSubmit={handleSubmit}>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-bold">Employee Information</CardTitle>

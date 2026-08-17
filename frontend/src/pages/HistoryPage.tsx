@@ -151,13 +151,13 @@ export const HistoryPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans">
       {/* Header Banner */}
-      <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-card p-6 sm:p-8 rounded-3xl border border-border shadow-md">
+      <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-card p-6 sm:p-8 rounded-xl border border-border">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold font-sans">
             <Sparkles className="w-3.5 h-3.5" />
             <span className="uppercase tracking-widest text-[10px]">Workforce Audit Ledger</span>
           </div>
-          <h1 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground flex items-center gap-3">
+          <h1 className="font-display text-3xl sm:text-5xl font-normal tracking-tighter text-foreground flex items-center gap-3">
             <History className="w-8 h-8 text-primary" />
             Attendance History Log
           </h1>
@@ -193,46 +193,66 @@ export const HistoryPage: React.FC = () => {
       {/* Summary Telemetry Metrics */}
       {summary && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card className="p-4 border-border bg-card shadow-xs rounded-2xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-muted-foreground">Total Filtered Entries</span>
-              <Calendar className="w-4 h-4 text-primary" />
+          <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all text-center flex flex-col items-center justify-center space-y-2">
+            <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
+              <Calendar className="w-24 h-24 text-primary" />
             </div>
-            <p className="text-2xl font-black text-foreground mt-2 font-mono">{summary.totalRecords}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Matching current view</p>
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 relative z-10 mb-1">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <p className="text-3xl font-black text-foreground font-mono relative z-10">{summary.totalRecords}</p>
+            <div className="relative z-10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Total Filtered Entries</span>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Matching current view</p>
+            </div>
           </Card>
 
-          <Card className="p-4 border-border bg-card shadow-xs rounded-2xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-muted-foreground">Present Days</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all text-center flex flex-col items-center justify-center space-y-2">
+            <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
+              <CheckCircle2 className="w-24 h-24 text-emerald-500" />
             </div>
-            <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2 font-mono">{summary.presentCount}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">On-time check-ins</p>
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 relative z-10 mb-1">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono relative z-10">{summary.presentCount}</p>
+            <div className="relative z-10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Present Days</span>
+              <p className="text-[10px] text-muted-foreground mt-0.5">On-time check-ins</p>
+            </div>
           </Card>
 
-          <Card className="p-4 border-border bg-card shadow-xs rounded-2xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-muted-foreground">Late Check-Ins</span>
-              <AlertTriangle className="w-4 h-4 text-amber-500" />
+          <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all text-center flex flex-col items-center justify-center space-y-2">
+            <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
+              <AlertTriangle className="w-24 h-24 text-amber-500" />
             </div>
-            <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-2 font-mono">{summary.lateCount}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">With late justification</p>
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20 relative z-10 mb-1">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <p className="text-3xl font-black text-amber-600 dark:text-amber-400 font-mono relative z-10">{summary.lateCount}</p>
+            <div className="relative z-10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Late Check-Ins</span>
+              <p className="text-[10px] text-muted-foreground mt-0.5">With late justification</p>
+            </div>
           </Card>
 
-          <Card className="p-4 border-border bg-card shadow-xs rounded-2xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-muted-foreground">Logged Working Hours</span>
-              <Clock className="w-4 h-4 text-indigo-500" />
+          <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all text-center flex flex-col items-center justify-center space-y-2">
+            <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
+              <Clock className="w-24 h-24 text-indigo-500" />
             </div>
-            <p className="text-2xl font-black text-foreground mt-2 font-mono">{summary.totalWorkingHoursFormatted}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Avg {summary.avgWorkingHoursFormatted} / day</p>
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center border border-indigo-500/20 relative z-10 mb-1">
+              <Clock className="w-5 h-5" />
+            </div>
+            <p className="text-3xl font-black text-foreground font-mono relative z-10">{summary.totalWorkingHoursFormatted}</p>
+            <div className="relative z-10">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Logged Working Hours</span>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Avg {summary.avgWorkingHoursFormatted} / day</p>
+            </div>
           </Card>
         </div>
       )}
 
       {/* Filter Bar & Controls */}
-      <Card className="border-border bg-card/90 shadow-sm rounded-3xl overflow-hidden">
+      <Card className="overflow-hidden">
         <CardContent className="p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
             <div className="flex items-center gap-2 text-xs font-bold text-foreground">
@@ -400,7 +420,7 @@ export const HistoryPage: React.FC = () => {
       </Card>
 
       {/* History Table */}
-      <Card className="border-border bg-card shadow-sm rounded-3xl overflow-hidden">
+      <Card className="overflow-hidden">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-6 border-b border-border/60 gap-4">
           <div>
             <CardTitle className="text-lg font-bold flex items-center gap-2">

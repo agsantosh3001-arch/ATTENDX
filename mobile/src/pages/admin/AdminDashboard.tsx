@@ -89,45 +89,65 @@ export const AdminDashboard: React.FC = () => {
 
       {/* 2x2 Metric Cards Grid */}
       <div className="grid grid-cols-2 gap-3">
-        <Card className="p-4 border-border bg-card rounded-3xl">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase">Present</span>
-            <CheckCircle className="w-4 h-4 text-emerald-500" />
+        <Card className="p-4 relative overflow-hidden text-center flex flex-col items-center justify-center space-y-1">
+          <div className="absolute -bottom-3 -right-3 opacity-5 pointer-events-none">
+            <CheckCircle className="w-20 h-20 text-emerald-500" />
           </div>
-          <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">{presentCount}</p>
-          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Checked in on-time</p>
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 relative z-10 mb-1">
+            <CheckCircle className="w-4 h-4" />
+          </div>
+          <p className="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono relative z-10">{presentCount}</p>
+          <div className="relative z-10">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Present</span>
+            <p className="text-[9px] text-muted-foreground mt-0.5">Checked in on-time</p>
+          </div>
         </Card>
 
-        <Card className="p-4 border-border bg-card rounded-3xl">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase">Late</span>
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
+        <Card className="p-4 relative overflow-hidden text-center flex flex-col items-center justify-center space-y-1">
+          <div className="absolute -bottom-3 -right-3 opacity-5 pointer-events-none">
+            <AlertTriangle className="w-20 h-20 text-amber-500" />
           </div>
-          <p className="text-3xl font-black text-amber-600 dark:text-amber-400 font-mono mt-1">{lateCount}</p>
-          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">With justification</p>
+          <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20 relative z-10 mb-1">
+            <AlertTriangle className="w-4 h-4" />
+          </div>
+          <p className="text-3xl font-black text-amber-600 dark:text-amber-400 font-mono relative z-10">{lateCount}</p>
+          <div className="relative z-10">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Late</span>
+            <p className="text-[9px] text-muted-foreground mt-0.5">With justification</p>
+          </div>
         </Card>
 
-        <Card className="p-4 border-border bg-card rounded-3xl">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase">Absent</span>
-            <Clock className="w-4 h-4 text-destructive" />
+        <Card className="p-4 relative overflow-hidden text-center flex flex-col items-center justify-center space-y-1">
+          <div className="absolute -bottom-3 -right-3 opacity-5 pointer-events-none">
+            <Clock className="w-20 h-20 text-destructive" />
           </div>
-          <p className="text-3xl font-black text-destructive font-mono mt-1">{absentCount}</p>
-          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Unexcused / Leave</p>
+          <div className="w-8 h-8 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center border border-destructive/20 relative z-10 mb-1">
+            <Clock className="w-4 h-4" />
+          </div>
+          <p className="text-3xl font-black text-destructive font-mono relative z-10">{absentCount}</p>
+          <div className="relative z-10">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Absent</span>
+            <p className="text-[9px] text-muted-foreground mt-0.5">Unexcused / Leave</p>
+          </div>
         </Card>
 
-        <Card className="p-4 border-border bg-card rounded-3xl">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase">Roster</span>
-            <Users className="w-4 h-4 text-primary" />
+        <Card className="p-4 relative overflow-hidden text-center flex flex-col items-center justify-center space-y-1">
+          <div className="absolute -bottom-3 -right-3 opacity-5 pointer-events-none">
+            <Users className="w-20 h-20 text-primary" />
           </div>
-          <p className="text-3xl font-black text-foreground font-mono mt-1">{allEmployees.length}</p>
-          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Total Employees</p>
+          <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 relative z-10 mb-1">
+            <Users className="w-4 h-4" />
+          </div>
+          <p className="text-3xl font-black text-foreground font-mono relative z-10">{allEmployees.length}</p>
+          <div className="relative z-10">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Roster</span>
+            <p className="text-[9px] text-muted-foreground mt-0.5">Total Employees</p>
+          </div>
         </Card>
       </div>
 
       {/* Today's Activity Feed List */}
-      <Card className="p-4 border-border bg-card shadow-xs rounded-3xl space-y-3">
+      <Card className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold text-foreground">Today's Live Attendance Feed</h3>
           <span className="text-[10px] text-muted-foreground font-medium">{todayRecords.length} records</span>

@@ -62,7 +62,7 @@ export const AdminSettingsPage: React.FC = () => {
         </div>
       </div>
 
-      <Card className="border-border bg-card shadow-xs rounded-3xl">
+      <Card>
         <form onSubmit={handleSubmit}>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-bold flex items-center gap-2">

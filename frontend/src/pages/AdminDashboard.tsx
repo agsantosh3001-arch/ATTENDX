@@ -185,13 +185,13 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans">
       {/* Header Banner */}
-      <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-card p-6 sm:p-8 rounded-3xl border border-border shadow-md">
+      <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-card p-6 sm:p-8 rounded-xl border border-border">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold font-sans">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span className="uppercase tracking-widest text-[10px]">Administrator Control Center</span>
           </div>
-          <h1 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+          <h1 className="font-display text-3xl sm:text-5xl font-normal tracking-tighter text-foreground">
             Admin Console
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground font-sans">Manage employee approvals, office geofence settings, and attendance records.</p>
@@ -210,51 +210,55 @@ export const AdminDashboard: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-5 border-border bg-card rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Pending Approvals</p>
-              <p className="font-display text-3xl font-extrabold text-amber-500 tracking-tight">{pendingEmployees.length}</p>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
+        <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all">
+          <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
+            <Clock className="w-32 h-32 text-amber-500" />
+          </div>
+          <div className="flex flex-col items-center justify-center text-center relative z-10 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
               <Clock className="w-6 h-6" />
             </div>
+            <p className="font-display text-4xl font-normal tracking-tighter text-amber-500">{pendingEmployees.length}</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Pending Approvals</p>
           </div>
         </Card>
 
-        <Card className="p-5 border-border bg-card rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Active Employees</p>
-              <p className="font-display text-3xl font-extrabold text-foreground tracking-tight">{allEmployees.length}</p>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+        <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all">
+          <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
+            <Users className="w-32 h-32 text-primary" />
+          </div>
+          <div className="flex flex-col items-center justify-center text-center relative z-10 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
               <Users className="w-6 h-6" />
             </div>
+            <p className="font-display text-4xl font-normal tracking-tighter text-foreground">{allEmployees.length}</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Active Employees</p>
           </div>
         </Card>
 
-        <Card className="p-5 border-border bg-card rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Today's Check-Ins</p>
-              <p className="font-display text-3xl font-extrabold text-emerald-500 tracking-tight">{todayAttendance.length}</p>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
+        <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all">
+          <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
+            <CheckCircle className="w-32 h-32 text-emerald-500" />
+          </div>
+          <div className="flex flex-col items-center justify-center text-center relative z-10 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
               <CheckCircle className="w-6 h-6" />
             </div>
+            <p className="font-display text-4xl font-normal tracking-tighter text-emerald-500">{todayAttendance.length}</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Today's Check-Ins</p>
           </div>
         </Card>
 
-        <Card className="p-5 border-border bg-card rounded-2xl shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Geofence Radius</p>
-              <p className="font-mono text-3xl font-extrabold text-primary tracking-tight">{settings?.allowedRadiusMeters || 2000}m</p>
-            </div>
-            <div className="h-12 w-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
+        <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all">
+          <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
+            <MapPin className="w-32 h-32 text-purple-400" />
+          </div>
+          <div className="flex flex-col items-center justify-center text-center relative z-10 space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
               <MapPin className="w-6 h-6" />
             </div>
+            <p className="font-mono text-3xl font-extrabold text-primary tracking-tight mt-1 mb-1">{settings?.allowedRadiusMeters || 2000}m</p>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Geofence Radius</p>
           </div>
         </Card>
       </div>
@@ -331,7 +335,7 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Tab Content */}
       {activeTab === 'approvals' && (
-        <Card className="border-border">
+        <Card>
           <CardHeader>
             <CardTitle className="text-lg font-bold">Pending Employee Approvals</CardTitle>
             <CardDescription>Review and approve new employee registrations.</CardDescription>
@@ -378,7 +382,7 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {activeTab === 'employees' && (
-        <Card className="border-border">
+        <Card>
           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle className="text-lg font-bold">Employee Directory</CardTitle>
@@ -426,7 +430,7 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {activeTab === 'attendance' && (
-        <Card className="border-border">
+        <Card>
           <CardHeader>
             <CardTitle className="text-lg font-bold">Today's Attendance Logs</CardTitle>
             <CardDescription>Live attendance records submitted by employees today.</CardDescription>
@@ -475,7 +479,7 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {activeTab === 'settings' && (
-        <Card className="border-border max-w-2xl">
+        <Card className="max-w-2xl p-6">
           <CardHeader>
             <CardTitle className="text-lg font-bold">Office Geofence & Timing Configuration</CardTitle>
             <CardDescription>Configure office coordinates, GPS accuracy threshold, and work hours.</CardDescription>
@@ -552,7 +556,7 @@ export const AdminDashboard: React.FC = () => {
       )}
 
       {activeTab === 'holidays' && (
-        <Card className="border-border">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
               <CardTitle className="text-lg font-bold">Office Holidays</CardTitle>

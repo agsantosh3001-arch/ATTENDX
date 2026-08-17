@@ -54,11 +54,25 @@ app.use(helmet());
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow any local origin during development (e.g. 5173, 5174) or specified frontendUrl
-      if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin === config.frontendUrl) {
+      // Allow requests with no origin (like curl, mobile apps, or same-origin serverless handlers)
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        config.frontendUrl,
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+      ].filter(Boolean);
+
+      const isVercelDomain = origin.endsWith('.vercel.app');
+      const isAllowed = allowedOrigins.includes(origin) || isVercelDomain;
+
+      if (isAllowed) {
         callback(null, true);
       } else {
-        callback(null, true);
+        callback(new Error('Blocked by CORS policy'));
       }
     },
     credentials: true,

@@ -57,7 +57,7 @@ export const LoginPage: React.FC = () => {
 
       {/* Center Primary Action — Google Workspace Sign In */}
       <div className="relative z-10 w-full space-y-6 my-auto py-8">
-        <Card className="shadow-2xl border-border bg-card/90 backdrop-blur-xl rounded-3xl p-2">
+        <Card className="backdrop-blur-xl">
           <CardHeader className="text-center pb-2 pt-4">
             <CardTitle className="text-base font-bold">Employee Access</CardTitle>
             <CardDescription className="text-xs">Authenticate using your organization Google Account.</CardDescription>
@@ -104,7 +104,7 @@ export const LoginPage: React.FC = () => {
               <span>Administrator Portal Access</span>
             </button>
           ) : (
-            <Card className="border-border bg-card/90 backdrop-blur-xl rounded-3xl animate-in slide-in-from-bottom duration-200">
+            <Card className="backdrop-blur-xl animate-in slide-in-from-bottom duration-200">
               <form onSubmit={handleAdminLogin}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-bold flex items-center justify-between">

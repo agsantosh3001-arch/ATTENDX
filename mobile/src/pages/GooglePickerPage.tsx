@@ -77,7 +77,7 @@ export const GooglePickerPage: React.FC = () => {
           <p className="text-xs text-muted-foreground">Select a Google Workspace test profile</p>
         </div>
 
-        <Card className="shadow-xl border-border bg-card rounded-3xl overflow-hidden divide-y divide-border/60">
+        <Card className="overflow-hidden divide-y divide-border/60">
           <CardContent className="p-0">
             <div className="divide-y divide-border/60">
               {PRESET_ACCOUNTS.map((acc) => (

@@ -9,12 +9,14 @@ import {
   Bell,
   MapPin,
   Clock,
+  CheckCircle,
   CheckCircle2,
   AlertTriangle,
   RefreshCw,
   Sparkles,
   Calendar as CalendarIcon,
   ShieldCheck,
+  History,
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { AttendanceRecord, NotificationItem } from '../types';
@@ -260,7 +262,7 @@ export const EmployeeDashboard: React.FC = () => {
       </div>
 
       {/* 2. HERO STATUS CARD */}
-      <Card className="shadow-lg border-border bg-card/90 backdrop-blur-xl rounded-3xl p-5 overflow-hidden">
+      <Card className="backdrop-blur-xl overflow-hidden">
         {todayData?.buttonState === 'CAN_CHECK_IN' && (
           /* MODE A: Ready to Check In */
           <div className="text-center space-y-4 py-2">
@@ -281,7 +283,7 @@ export const EmployeeDashboard: React.FC = () => {
               size="lg"
               onClick={handleCheckIn}
               isLoading={punching}
-              className="w-full h-16 text-lg font-extrabold rounded-2xl shadow-xl shadow-primary/25 touch-active"
+              className="w-full text-base font-medium rounded-lg"
             >
               Punch Check-In
             </Button>
@@ -305,11 +307,11 @@ export const EmployeeDashboard: React.FC = () => {
             <LiveTimer checkInTime={todayData.attendance!.checkInTime!} isLate={todayData.attendance?.isLate} />
 
             <Button
-              variant="destructive"
+              variant="secondary"
               size="lg"
               onClick={handleCheckOut}
               isLoading={punching}
-              className="w-full h-14 text-base font-extrabold rounded-2xl shadow-md touch-active"
+              className="w-full text-base font-medium rounded-lg"
             >
               Punch Check-Out
             </Button>
@@ -354,37 +356,49 @@ export const EmployeeDashboard: React.FC = () => {
 
       {/* 3. Monthly Snapshot 4-Up Stat Row */}
       <div className="grid grid-cols-4 gap-2 text-center">
-        <div className="p-3 rounded-2xl bg-card border border-border">
-          <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono">
+        <div className="p-3 rounded-2xl bg-card border border-border relative overflow-hidden group shadow-sm hover:border-emerald-500/50 transition-colors">
+          <div className="absolute -bottom-2 -right-2 opacity-10 pointer-events-none">
+            <CheckCircle className="w-10 h-10 text-emerald-500" />
+          </div>
+          <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono relative z-10">
             {monthlyStats?.present || 0}
           </p>
-          <p className="text-[10px] font-bold text-muted-foreground">Present</p>
+          <p className="text-[10px] font-bold text-muted-foreground relative z-10">Present</p>
         </div>
 
-        <div className="p-3 rounded-2xl bg-card border border-border">
-          <p className="text-lg font-black text-amber-600 dark:text-amber-400 font-mono">
+        <div className="p-3 rounded-2xl bg-card border border-border relative overflow-hidden group shadow-sm hover:border-amber-500/50 transition-colors">
+          <div className="absolute -bottom-2 -right-2 opacity-10 pointer-events-none">
+            <AlertTriangle className="w-10 h-10 text-amber-500" />
+          </div>
+          <p className="text-lg font-black text-amber-600 dark:text-amber-400 font-mono relative z-10">
             {monthlyStats?.late || 0}
           </p>
-          <p className="text-[10px] font-bold text-muted-foreground">Late</p>
+          <p className="text-[10px] font-bold text-muted-foreground relative z-10">Late</p>
         </div>
 
-        <div className="p-3 rounded-2xl bg-card border border-border">
-          <p className="text-lg font-black text-destructive font-mono">
+        <div className="p-3 rounded-2xl bg-card border border-border relative overflow-hidden group shadow-sm hover:border-destructive/50 transition-colors">
+          <div className="absolute -bottom-2 -right-2 opacity-10 pointer-events-none">
+            <Clock className="w-10 h-10 text-destructive" />
+          </div>
+          <p className="text-lg font-black text-destructive font-mono relative z-10">
             {monthlyStats?.absent || 0}
           </p>
-          <p className="text-[10px] font-bold text-muted-foreground">Absent</p>
+          <p className="text-[10px] font-bold text-muted-foreground relative z-10">Absent</p>
         </div>
 
-        <div className="p-3 rounded-2xl bg-card border border-border">
-          <p className="text-lg font-black text-foreground font-mono">
+        <div className="p-3 rounded-2xl bg-card border border-border relative overflow-hidden group shadow-sm hover:border-primary/50 transition-colors">
+          <div className="absolute -bottom-2 -right-2 opacity-10 pointer-events-none">
+            <History className="w-10 h-10 text-foreground" />
+          </div>
+          <p className="text-lg font-black text-foreground font-mono relative z-10">
             {monthlyStats?.avgFormattedHours || '8h'}
           </p>
-          <p className="text-[10px] font-bold text-muted-foreground">Avg Shift</p>
+          <p className="text-[10px] font-bold text-muted-foreground relative z-10">Avg Shift</p>
         </div>
       </div>
 
       {/* 4. Mini Calendar Grid */}
-      <Card className="p-4 border-border bg-card shadow-xs rounded-3xl space-y-3">
+      <Card className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
             <CalendarIcon className="w-4 h-4 text-primary" />
@@ -423,7 +437,7 @@ export const EmployeeDashboard: React.FC = () => {
       </Card>
 
       {/* 5. Recent Records List */}
-      <Card className="p-4 border-border bg-card shadow-xs rounded-3xl space-y-3">
+      <Card className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-primary" />

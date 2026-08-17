@@ -30,7 +30,7 @@ export const PendingApprovalPage: React.FC = () => {
           <Clock className="w-8 h-8" />
         </div>
 
-        <Card className="shadow-lg border-border bg-card rounded-3xl p-2">
+        <Card>
           <CardHeader className="pb-3 pt-4">
             <div className="flex justify-center mb-2">
               <Badge variant={user?.status || 'pending'}>{user?.status || 'pending'}</Badge>

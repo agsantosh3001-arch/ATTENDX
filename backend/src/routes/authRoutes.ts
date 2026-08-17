@@ -8,6 +8,7 @@ import { authRateLimiter } from '../middleware/rateLimiter';
 import { adminLoginSchema, onboardingSchema } from '../validators/authValidators';
 import * as authService from '../services/authService';
 import { config } from '../config/env';
+import { AppError } from '../utils/appError';
 
 const router = Router();
 
@@ -60,7 +61,7 @@ router.get('/google', (req: Request, res: Response, next: NextFunction) => {
 
   res.cookie('client_origin', clientOrigin, {
     httpOnly: true,
-    secure: false,
+    secure: config.nodeEnv === 'production',
     sameSite: 'lax',
     maxAge: 10 * 60 * 1000,
   });
@@ -74,6 +75,10 @@ router.get('/google', (req: Request, res: Response, next: NextFunction) => {
 // Development Mock Account Selector Handler
 router.get('/google/dev-select', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (config.nodeEnv === 'production' && config.googleClientId !== 'mock_google_client_id') {
+      return next(new AppError('FORBIDDEN', 403, 'Mock account picker is disabled in production with real OAuth.'));
+    }
+
     const email = (req.query.email as string) || 'john.doe@attendx.com';
     const fullName = (req.query.name as string) || 'John Doe';
     const googleId = `google_mock_${crypto.createHash('md5').update(email).digest('hex').substring(0, 10)}`;
@@ -93,7 +98,7 @@ router.get('/google/dev-select', async (req: Request, res: Response, next: NextF
 
     res.cookie('refreshToken', sessionResult.refreshToken, {
       httpOnly: true,
-      secure: false,
+      secure: config.nodeEnv === 'production',
       sameSite: 'lax',
       maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
     });

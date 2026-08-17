@@ -66,7 +66,7 @@ export const AdminReportsPage: React.FC = () => {
         </div>
       </div>
 
-      <Card className="p-5 border-border bg-card shadow-xs rounded-3xl space-y-4">
+      <Card className="space-y-4">
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-foreground">Select Month & Year</label>
           <input

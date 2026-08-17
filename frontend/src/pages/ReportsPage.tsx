@@ -111,13 +111,13 @@ export const ReportsPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans">
       {/* Header Banner */}
-      <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-card p-6 sm:p-8 rounded-3xl border border-border shadow-md">
+      <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-card p-6 sm:p-8 rounded-xl border border-border">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold font-sans">
             <BarChart3 className="w-3.5 h-3.5" />
             <span className="uppercase tracking-widest text-[10px]">Workforce Analytics & Export Hub</span>
           </div>
-          <h1 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+          <h1 className="font-display text-3xl sm:text-5xl font-normal tracking-tighter text-foreground">
             Reports & Analytics Hub
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground font-sans">
@@ -137,7 +137,7 @@ export const ReportsPage: React.FC = () => {
       </div>
 
       {/* Filter & Export Bar */}
-      <Card className="p-5 border-border bg-card rounded-2xl shadow-sm">
+      <Card>
         <CardContent className="p-0">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             {/* Filter controls */}
@@ -210,7 +210,7 @@ export const ReportsPage: React.FC = () => {
 
       {/* Analytics KPI Overview */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 border-border">
+        <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Total Active Employees</p>
@@ -222,7 +222,7 @@ export const ReportsPage: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="p-4 border-border">
+        <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Total Working Hours</p>
@@ -234,7 +234,7 @@ export const ReportsPage: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="p-4 border-border">
+        <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Avg Hours / Employee</p>
@@ -246,7 +246,7 @@ export const ReportsPage: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="p-4 border-border">
+        <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground">Late Check-Ins</p>
@@ -260,7 +260,7 @@ export const ReportsPage: React.FC = () => {
       </div>
 
       {/* Daily Employee Attendance & Working Hours Line Chart Card (line-charts-9 style) */}
-      <Card className="border-border w-full">
+      <Card className="w-full">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
@@ -382,7 +382,7 @@ export const ReportsPage: React.FC = () => {
       {/* Visual Analytics Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Status Ratio Chart */}
-        <Card className="border-border">
+        <Card>
           <CardHeader>
             <CardTitle className="text-lg font-bold flex items-center gap-2">
               <PieChart className="w-5 h-5 text-primary" />
@@ -444,7 +444,7 @@ export const ReportsPage: React.FC = () => {
         </Card>
 
         {/* Department Hours Breakdown */}
-        <Card className="border-border">
+        <Card>
           <CardHeader>
             <CardTitle className="text-lg font-bold flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
