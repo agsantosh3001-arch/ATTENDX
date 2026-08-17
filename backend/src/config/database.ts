@@ -1,9 +1,18 @@
 import { PrismaClient } from '@prisma/client';
-// Prisma instance initialization
 import { logger } from './logger';
 import { config } from './env';
 
-export const prisma = new PrismaClient();
+const globalForPrisma = global as unknown as { prisma?: PrismaClient };
+
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: config.nodeEnv === 'development' ? ['error', 'warn'] : ['error'],
+  });
+
+if (config.nodeEnv !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
 
 let embeddedPgInstance: any = null;
 
@@ -12,6 +21,10 @@ export async function connectDatabase(): Promise<void> {
     await prisma.$connect();
     logger.info('Connected to PostgreSQL via Prisma');
   } catch (error) {
+    if (config.nodeEnv === 'production') {
+      logger.error('Failed to connect to PostgreSQL in production:', error);
+      throw error;
+    }
     logger.warn('Failed to connect to configured DATABASE_URL, attempting embedded PostgreSQL server start...');
     try {
       // @ts-ignore

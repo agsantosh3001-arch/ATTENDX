@@ -157,13 +157,13 @@ export const EmployeeDashboard: React.FC = () => {
             resolve({
               latitude: pos.coords.latitude,
               longitude: pos.coords.longitude,
-              accuracy: pos.coords.accuracy || 15,
+              accuracy: Math.round(pos.coords.accuracy) || 15,
             });
           },
           () => {
             resolve({ latitude: 22.6178, longitude: 88.4206, accuracy: 15 });
           },
-          { timeout: 5000 }
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 15000 }
         );
       } else {
         resolve({ latitude: 22.6178, longitude: 88.4206, accuracy: 15 });

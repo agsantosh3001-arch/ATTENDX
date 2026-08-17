@@ -32,17 +32,17 @@ export const CheckInButton: React.FC<CheckInButtonProps> = ({
         reject(new Error('Geolocation is not supported by your browser.'));
         return;
       }
-      setGpsStatus('Acquiring high-precision GPS coordinates...');
+      setGpsStatus('Acquiring verified GPS coordinates...');
       navigator.geolocation.getCurrentPosition(
         (pos) => resolve(pos),
         (err) => {
           let message = 'Failed to acquire GPS location.';
           if (err.code === err.PERMISSION_DENIED) message = 'GPS permission denied. Please enable location access in browser settings.';
           if (err.code === err.POSITION_UNAVAILABLE) message = 'GPS signal unavailable. Please ensure GPS/Location is enabled.';
-          if (err.code === err.TIMEOUT) message = 'GPS request timed out.';
+          if (err.code === err.TIMEOUT) message = 'GPS request timed out. Please try again.';
           reject(new Error(message));
         },
-        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 6000, maximumAge: 15000 }
       );
     });
   };
