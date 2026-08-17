@@ -4,11 +4,11 @@ import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
+import { UserAvatar } from '../components/ui/UserAvatar';
 import {
   Users,
   CheckCircle,
   Clock,
-  AlertTriangle,
   MapPin,
   Settings,
   Calendar,
@@ -21,6 +21,12 @@ import {
   Check,
   X,
   ShieldCheck,
+  Radio,
+  Building,
+  Briefcase,
+  Sliders,
+  CalendarDays,
+  Sparkles,
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { User, OfficeSettings, AttendanceRecord, Holiday } from '../types';
@@ -43,14 +49,14 @@ export const AdminDashboard: React.FC = () => {
   const [settingsForm, setSettingsForm] = useState<OfficeSettings>({
     officeLatitude: 22.6178,
     officeLongitude: 88.4206,
-    allowedRadiusMeters: 1000,
-    gpsAccuracyThresholdMeters: 100,
+    allowedRadiusMeters: 2000,
+    gpsAccuracyThresholdMeters: 500,
     officeStartTime: '09:00',
     officeEndTime: '18:00',
     timezone: 'Asia/Kolkata',
   });
   const [savingSettings, setSavingSettings] = useState(false);
-  const [settingsMsg, setSettingsMsg] = useState<string | null>(null);
+  const [settingsMsg, setSettingsMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Holiday Modal
   const [showHolidayModal, setShowHolidayModal] = useState(false);
@@ -63,7 +69,7 @@ export const AdminDashboard: React.FC = () => {
       const res = await api.get('/admin/pending-employees');
       if (res.data?.success) setPendingEmployees(res.data.data.employees || []);
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching pending employees:', e);
     }
   }, []);
 
@@ -72,7 +78,7 @@ export const AdminDashboard: React.FC = () => {
       const res = await api.get('/admin/employees');
       if (res.data?.success) setAllEmployees(res.data.data.employees || []);
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching employee directory:', e);
     }
   }, []);
 
@@ -81,7 +87,7 @@ export const AdminDashboard: React.FC = () => {
       const res = await api.get('/attendance/history?limit=100');
       if (res.data?.success) setTodayAttendance(res.data.data.records || []);
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching attendance logs:', e);
     }
   }, []);
 
@@ -93,7 +99,7 @@ export const AdminDashboard: React.FC = () => {
         setSettingsForm(res.data.data.settings);
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching office settings:', e);
     }
   }, []);
 
@@ -102,13 +108,19 @@ export const AdminDashboard: React.FC = () => {
       const res = await api.get('/admin/holidays');
       if (res.data?.success) setHolidays(res.data.data.holidays || []);
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching holidays:', e);
     }
   }, []);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
-    await Promise.all([fetchPending(), fetchEmployees(), fetchTodayAttendance(), fetchSettings(), fetchHolidays()]);
+    await Promise.all([
+      fetchPending(),
+      fetchEmployees(),
+      fetchTodayAttendance(),
+      fetchSettings(),
+      fetchHolidays(),
+    ]);
     setLoading(false);
   }, [fetchPending, fetchEmployees, fetchTodayAttendance, fetchSettings, fetchHolidays]);
 
@@ -145,10 +157,13 @@ export const AdminDashboard: React.FC = () => {
       const res = await api.put('/admin/settings', settingsForm);
       if (res.data?.success) {
         setSettings(res.data.data.settings);
-        setSettingsMsg('Office settings updated successfully.');
+        setSettingsMsg({ type: 'success', text: 'Office geofence & timing updated successfully.' });
       }
     } catch (err: any) {
-      setSettingsMsg(err.response?.data?.error?.message || 'Failed to update settings.');
+      setSettingsMsg({
+        type: 'error',
+        text: err.response?.data?.error?.message || 'Failed to update settings.',
+      });
     } finally {
       setSavingSettings(false);
     }
@@ -182,101 +197,118 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
+  const presentTodayCount = todayAttendance.filter((r) => r.status === 'present').length;
+  const lateTodayCount = todayAttendance.filter((r) => r.status === 'late').length;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-card p-6 sm:p-8 rounded-xl border border-border">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold font-sans">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span className="uppercase tracking-widest text-[10px]">Administrator Control Center</span>
+      {/* Editorial Header Banner */}
+      <div className="relative overflow-hidden bg-card/80 backdrop-blur-md rounded-2xl border border-border/80 p-6 sm:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span className="uppercase tracking-wider text-[11px]">Administrator Portal</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+              Workforce Operations
+            </h1>
+            <p className="text-sm text-muted-foreground max-w-xl">
+              Monitor real-time employee check-ins, manage registration approvals, and configure GPS geofence parameters.
+            </p>
           </div>
-          <h1 className="font-display text-3xl sm:text-5xl font-normal tracking-tighter text-foreground">
-            Admin Console
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground font-sans">Manage employee approvals, office geofence settings, and attendance records.</p>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadAll}
+            isLoading={loading}
+            leftIcon={<RefreshCw className="w-4 h-4" />}
+            className="self-start sm:self-auto rounded-xl font-semibold shadow-sm"
+          >
+            Sync Data
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={loadAll}
-          isLoading={loading}
-          leftIcon={<RefreshCw className="w-4 h-4" />}
-          className="self-start sm:self-auto rounded-xl font-bold"
-        >
-          Sync Data
-        </Button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all">
-          <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
-            <Clock className="w-32 h-32 text-amber-500" />
-          </div>
-          <div className="flex flex-col items-center justify-center text-center relative z-10 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
-              <Clock className="w-6 h-6" />
+      {/* KPI Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Pending Approvals */}
+        <div className="rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pending Registrations</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
+              <Clock className="w-4 h-4" />
             </div>
-            <p className="font-display text-4xl font-normal tracking-tighter text-amber-500">{pendingEmployees.length}</p>
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Pending Approvals</p>
           </div>
-        </Card>
+          <div>
+            <div className="text-3xl font-bold text-amber-500 font-mono">{pendingEmployees.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Awaiting administrator review</p>
+          </div>
+        </div>
 
-        <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all">
-          <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
-            <Users className="w-32 h-32 text-primary" />
-          </div>
-          <div className="flex flex-col items-center justify-center text-center relative z-10 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
-              <Users className="w-6 h-6" />
+        {/* Active Employees */}
+        <div className="rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active Staff</span>
+            <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+              <Users className="w-4 h-4" />
             </div>
-            <p className="font-display text-4xl font-normal tracking-tighter text-foreground">{allEmployees.length}</p>
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Active Employees</p>
           </div>
-        </Card>
+          <div>
+            <div className="text-3xl font-bold text-foreground font-mono">{allEmployees.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Total registered employees</p>
+          </div>
+        </div>
 
-        <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all">
-          <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
-            <CheckCircle className="w-32 h-32 text-emerald-500" />
-          </div>
-          <div className="flex flex-col items-center justify-center text-center relative z-10 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
-              <CheckCircle className="w-6 h-6" />
+        {/* Today's Punches */}
+        <div className="rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Today's Check-Ins</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
+              <CheckCircle className="w-4 h-4" />
             </div>
-            <p className="font-display text-4xl font-normal tracking-tighter text-emerald-500">{todayAttendance.length}</p>
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Today's Check-Ins</p>
           </div>
-        </Card>
+          <div>
+            <div className="text-3xl font-bold text-emerald-500 font-mono">{todayAttendance.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              <span className="text-emerald-500 font-medium">{presentTodayCount} on-time</span>
+              {lateTodayCount > 0 && <span className="text-amber-500 font-medium ml-1">({lateTodayCount} late)</span>}
+            </p>
+          </div>
+        </div>
 
-        <Card className="p-6 relative overflow-hidden group hover:border-primary/50 transition-all">
-          <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 pointer-events-none">
-            <MapPin className="w-32 h-32 text-purple-400" />
-          </div>
-          <div className="flex flex-col items-center justify-center text-center relative z-10 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
-              <MapPin className="w-6 h-6" />
+        {/* Geofence Perimeter */}
+        <div className="rounded-2xl border border-border/80 bg-card/60 backdrop-blur-sm p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Geofence Radius</span>
+            <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
+              <MapPin className="w-4 h-4" />
             </div>
-            <p className="font-mono text-3xl font-extrabold text-primary tracking-tight mt-1 mb-1">{settings?.allowedRadiusMeters || 2000}m</p>
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Geofence Radius</p>
           </div>
-        </Card>
+          <div>
+            <div className="text-3xl font-bold text-purple-400 font-mono">
+              {settings?.allowedRadiusMeters || 2000}m
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Active verification threshold</p>
+          </div>
+        </div>
       </div>
 
-      {/* Tabs Nav */}
-      <div className="flex rounded-2xl bg-muted/60 p-1.5 border border-border/60 backdrop-blur-md overflow-x-auto">
+      {/* Modern Navigation Pill Dock */}
+      <div className="flex bg-muted/40 p-1.5 rounded-2xl border border-border/60 backdrop-blur-md overflow-x-auto gap-1">
         <button
           onClick={() => setActiveTab('approvals')}
-          className={`flex-1 py-2.5 px-4 font-bold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 px-4 font-semibold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
             activeTab === 'approvals'
-              ? 'bg-card text-foreground shadow-md border border-border/80'
+              ? 'bg-card text-foreground shadow-sm border border-border/80'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Clock className="w-4 h-4 text-amber-500" />
           Pending Approvals
           {pendingEmployees.length > 0 && (
-            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-amber-500 text-white font-extrabold">
+            <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500 text-white font-bold">
               {pendingEmployees.length}
             </span>
           )}
@@ -284,9 +316,9 @@ export const AdminDashboard: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('employees')}
-          className={`flex-1 py-2.5 px-4 font-bold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 px-4 font-semibold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
             activeTab === 'employees'
-              ? 'bg-card text-foreground shadow-md border border-border/80'
+              ? 'bg-card text-foreground shadow-sm border border-border/80'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -296,21 +328,21 @@ export const AdminDashboard: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('attendance')}
-          className={`flex-1 py-2.5 px-4 font-bold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 px-4 font-semibold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
             activeTab === 'attendance'
-              ? 'bg-card text-foreground shadow-md border border-border/80'
+              ? 'bg-card text-foreground shadow-sm border border-border/80'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <CheckCircle className="w-4 h-4 text-emerald-500" />
-          Attendance Feed
+          Attendance Logs
         </button>
 
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex-1 py-2.5 px-4 font-bold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 px-4 font-semibold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
             activeTab === 'settings'
-              ? 'bg-card text-foreground shadow-md border border-border/80'
+              ? 'bg-card text-foreground shadow-sm border border-border/80'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -320,47 +352,71 @@ export const AdminDashboard: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('holidays')}
-          className={`flex-1 py-2.5 px-4 font-bold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 px-4 font-semibold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
             activeTab === 'holidays'
-              ? 'bg-card text-foreground shadow-md border border-border/80'
+              ? 'bg-card text-foreground shadow-sm border border-border/80'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           <Calendar className="w-4 h-4 text-pink-500" />
-          Holidays
+          Office Holidays
         </button>
       </div>
 
-      {/* Tab Content */}
-
-      {/* Tab Content */}
+      {/* Tab Panels */}
+      {/* 1. Approvals Tab */}
       {activeTab === 'approvals' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Pending Employee Approvals</CardTitle>
-            <CardDescription>Review and approve new employee registrations.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {pendingEmployees.length === 0 ? (
-              <div className="py-12 text-center text-muted-foreground text-sm">No pending approval requests.</div>
-            ) : (
-              <div className="divide-y divide-border">
-                {pendingEmployees.map((emp) => (
-                  <div key={emp.id} className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                      <h4 className="font-bold text-foreground text-base">{emp.fullName || emp.email}</h4>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {emp.email} • Dept: <span className="font-semibold text-foreground">{emp.department || 'N/A'}</span> • Desig:{' '}
-                        <span className="font-semibold text-foreground">{emp.designation || 'N/A'}</span>
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">Phone: {emp.phoneNumber || 'N/A'} • Age: {emp.age || 'N/A'}</p>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Pending Approvals</h2>
+              <p className="text-xs text-muted-foreground">New employees awaiting identity verification</p>
+            </div>
+            <Badge variant="pending">{pendingEmployees.length} Pending</Badge>
+          </div>
+
+          {pendingEmployees.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border p-12 text-center bg-card/40">
+              <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-3 opacity-60" />
+              <h3 className="text-base font-semibold text-foreground">No Pending Requests</h3>
+              <p className="text-xs text-muted-foreground mt-1">All employee registration requests have been processed.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {pendingEmployees.map((emp) => (
+                <div
+                  key={emp.id}
+                  className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm flex flex-col justify-between space-y-4"
+                >
+                  <div className="flex items-start gap-3.5">
+                    <UserAvatar name={emp.fullName || emp.email} email={emp.email} />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-sm text-foreground truncate">{emp.fullName || 'New Employee'}</h4>
+                      <p className="text-xs text-muted-foreground truncate">{emp.email}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-muted/60 px-2.5 py-0.5 rounded-lg border border-border/60">
+                          <Building className="w-3 h-3 text-primary" />
+                          {emp.department || 'No Dept'}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-muted/60 px-2.5 py-0.5 rounded-lg border border-border/60">
+                          <Briefcase className="w-3 h-3 text-indigo-400" />
+                          {emp.designation || 'No Role'}
+                        </span>
+                      </div>
                     </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-border/60 flex items-center justify-between gap-3">
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      Phone: {emp.phoneNumber || '—'}
+                    </span>
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
-                        variant="accent"
+                        variant="primary"
                         onClick={() => handleApprove(emp.id)}
                         leftIcon={<Check className="w-4 h-4" />}
+                        className="rounded-xl font-semibold text-xs h-9 px-3"
                       >
                         Approve
                       </Button>
@@ -369,55 +425,70 @@ export const AdminDashboard: React.FC = () => {
                         variant="destructive"
                         onClick={() => handleReject(emp.id)}
                         leftIcon={<X className="w-4 h-4" />}
+                        className="rounded-xl font-semibold text-xs h-9 px-3"
                       >
                         Reject
                       </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
+      {/* 2. Employee Directory Tab */}
       {activeTab === 'employees' && (
-        <Card>
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <CardTitle className="text-lg font-bold">Employee Directory</CardTitle>
-              <CardDescription>All registered employees and status details.</CardDescription>
+              <h2 className="text-lg font-bold text-foreground">Employee Directory</h2>
+              <p className="text-xs text-muted-foreground">Complete staff roster and account statuses</p>
             </div>
-            <div className="w-full sm:w-64">
+            <div className="w-full sm:w-72">
               <Input
-                placeholder="Search employee..."
+                placeholder="Search staff by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+
+          <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-border text-muted-foreground uppercase tracking-wider">
-                    <th className="py-3 px-2">Name</th>
-                    <th className="py-3 px-2">Email</th>
-                    <th className="py-3 px-2">Department</th>
-                    <th className="py-3 px-2">Designation</th>
-                    <th className="py-3 px-2">Status</th>
+                  <tr className="border-b border-border bg-muted/30 text-muted-foreground font-semibold uppercase tracking-wider">
+                    <th className="py-3.5 px-4">Employee</th>
+                    <th className="py-3.5 px-4">Department</th>
+                    <th className="py-3.5 px-4">Designation</th>
+                    <th className="py-3.5 px-4">Contact</th>
+                    <th className="py-3.5 px-4 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border/60">
                   {allEmployees
-                    .filter((e) => e.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) || e.email.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .filter(
+                      (e) =>
+                        e.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        e.email.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
                     .map((emp) => (
-                      <tr key={emp.id} className="hover:bg-muted/50 transition-colors">
-                        <td className="py-3 px-2 font-semibold text-foreground">{emp.fullName || '—'}</td>
-                        <td className="py-3 px-2 font-mono text-muted-foreground">{emp.email}</td>
-                        <td className="py-3 px-2">{emp.department || '—'}</td>
-                        <td className="py-3 px-2">{emp.designation || '—'}</td>
-                        <td className="py-3 px-2">
+                      <tr key={emp.id} className="hover:bg-muted/40 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            <UserAvatar name={emp.fullName || emp.email} email={emp.email} />
+                            <div>
+                              <p className="font-bold text-foreground text-sm">{emp.fullName || '—'}</p>
+                              <p className="text-xs text-muted-foreground font-mono">{emp.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 text-foreground font-medium">{emp.department || '—'}</td>
+                        <td className="py-3.5 px-4 text-foreground font-medium">{emp.designation || '—'}</td>
+                        <td className="py-3.5 px-4 text-muted-foreground font-mono">{emp.phoneNumber || '—'}</td>
+                        <td className="py-3.5 px-4 text-right">
                           <Badge variant={emp.status}>{emp.status}</Badge>
                         </td>
                       </tr>
@@ -425,76 +496,103 @@ export const AdminDashboard: React.FC = () => {
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
+      {/* 3. Attendance Logs Tab */}
       {activeTab === 'attendance' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Today's Attendance Logs</CardTitle>
-            <CardDescription>Live attendance records submitted by employees today.</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">Attendance Telemetry Feed</h2>
+              <p className="text-xs text-muted-foreground">Historical shift punches and timestamps</p>
+            </div>
+            <span className="text-xs font-mono text-muted-foreground">{todayAttendance.length} records logged</span>
+          </div>
+
+          <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-border text-muted-foreground uppercase tracking-wider">
-                    <th className="py-3 px-2">Date</th>
-                    <th className="py-3 px-2">Employee</th>
-                    <th className="py-3 px-2">Check In</th>
-                    <th className="py-3 px-2">Check Out</th>
-                    <th className="py-3 px-2">Working Hours</th>
-                    <th className="py-3 px-2">Status</th>
-                    <th className="py-3 px-2">Late Reason</th>
+                  <tr className="border-b border-border bg-muted/30 text-muted-foreground font-semibold uppercase tracking-wider">
+                    <th className="py-3.5 px-4">Date</th>
+                    <th className="py-3.5 px-4">Staff Member</th>
+                    <th className="py-3.5 px-4">Punch In</th>
+                    <th className="py-3.5 px-4">Punch Out</th>
+                    <th className="py-3.5 px-4">Duration</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4">Dispute Note</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody className="divide-y divide-border/60">
                   {todayAttendance.map((rec) => (
-                    <tr key={rec.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="py-3 px-2 font-semibold text-foreground">
+                    <tr key={rec.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="py-3.5 px-4 font-mono font-medium text-foreground">
                         {new Date(rec.date).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-2 font-semibold text-foreground">
+                      <td className="py-3.5 px-4 font-semibold text-foreground">
                         {rec.employee ? rec.employee.fullName || rec.employee.email : '—'}
                       </td>
-                      <td className="py-3 px-2">
-                        {rec.checkInTime ? new Date(rec.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                      <td className="py-3.5 px-4 font-mono text-foreground">
+                        {rec.checkInTime
+                          ? new Date(rec.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : '—'}
                       </td>
-                      <td className="py-3 px-2">
-                        {rec.checkOutTime ? new Date(rec.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                      <td className="py-3.5 px-4 font-mono text-foreground">
+                        {rec.checkOutTime
+                          ? new Date(rec.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : '—'}
                       </td>
-                      <td className="py-3 px-2 font-mono">{rec.formattedHours || '—'}</td>
-                      <td className="py-3 px-2">
+                      <td className="py-3.5 px-4 font-mono font-semibold text-primary">
+                        {rec.formattedHours || '—'}
+                      </td>
+                      <td className="py-3.5 px-4">
                         <Badge variant={rec.status}>{rec.status}</Badge>
                       </td>
-                      <td className="py-3 px-2 italic text-muted-foreground max-w-xs truncate">{rec.lateReason || '—'}</td>
+                      <td className="py-3.5 px-4 italic text-muted-foreground max-w-xs truncate">
+                        {rec.lateReason || '—'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
+      {/* 4. Geofence Settings Tab */}
       {activeTab === 'settings' && (
-        <Card className="max-w-2xl p-6">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Office Geofence & Timing Configuration</CardTitle>
-            <CardDescription>Configure office coordinates, GPS accuracy threshold, and work hours.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSaveSettings} className="space-y-4">
-              {settingsMsg && (
-                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs font-medium">
-                  {settingsMsg}
-                </div>
-              )}
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className="rounded-2xl border border-border/80 bg-card p-6 sm:p-8 shadow-sm space-y-6">
+            <div>
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-purple-400" />
+                Office Geofence & Shift Rules
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Configure GPS coordinates, verification radius, and official office timings.
+              </p>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {settingsMsg && (
+              <div
+                className={`p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 ${
+                  settingsMsg.type === 'success'
+                    ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-destructive/10 border border-destructive/30 text-destructive'
+                }`}
+              >
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                <span>{settingsMsg.text}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveSettings} className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <Input
-                  label="Office Latitude *"
+                  label="Office Latitude (Decimal Degrees) *"
                   type="number"
                   step="any"
                   value={settingsForm.officeLatitude}
@@ -502,7 +600,7 @@ export const AdminDashboard: React.FC = () => {
                   required
                 />
                 <Input
-                  label="Office Longitude *"
+                  label="Office Longitude (Decimal Degrees) *"
                   type="number"
                   step="any"
                   value={settingsForm.officeLongitude}
@@ -511,26 +609,30 @@ export const AdminDashboard: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <Input
-                  label="Allowed Radius (Meters) *"
+                  label="Allowed Punch Radius (Meters) *"
                   type="number"
                   value={settingsForm.allowedRadiusMeters}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, allowedRadiusMeters: parseFloat(e.target.value) })}
+                  onChange={(e) =>
+                    setSettingsForm({ ...settingsForm, allowedRadiusMeters: parseFloat(e.target.value) })
+                  }
                   required
                 />
                 <Input
                   label="Max GPS Accuracy Threshold (Meters) *"
                   type="number"
                   value={settingsForm.gpsAccuracyThresholdMeters}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, gpsAccuracyThresholdMeters: parseFloat(e.target.value) })}
+                  onChange={(e) =>
+                    setSettingsForm({ ...settingsForm, gpsAccuracyThresholdMeters: parseFloat(e.target.value) })
+                  }
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <Input
-                  label="Office Start Time (HH:MM) *"
+                  label="Official Start Time (HH:MM) *"
                   type="text"
                   placeholder="09:00"
                   value={settingsForm.officeStartTime}
@@ -538,7 +640,7 @@ export const AdminDashboard: React.FC = () => {
                   required
                 />
                 <Input
-                  label="Office End Time (HH:MM) *"
+                  label="Official End Time (HH:MM) *"
                   type="text"
                   placeholder="18:00"
                   value={settingsForm.officeEndTime}
@@ -547,58 +649,83 @@ export const AdminDashboard: React.FC = () => {
                 />
               </div>
 
-              <Button type="submit" variant="primary" isLoading={savingSettings} className="w-full">
-                Save Office Settings
-              </Button>
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  isLoading={savingSettings}
+                  className="w-full h-12 rounded-xl font-bold text-sm shadow-md"
+                >
+                  Save Geofence Configuration
+                </Button>
+              </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
+      {/* 5. Holidays Tab */}
       {activeTab === 'holidays' && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <div className="max-w-3xl mx-auto space-y-4">
+          <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg font-bold">Office Holidays</CardTitle>
-              <CardDescription>Manage official holidays for absent cron job logic.</CardDescription>
+              <h2 className="text-lg font-bold text-foreground">Official Holidays</h2>
+              <p className="text-xs text-muted-foreground">Excluded dates for daily absent marking cron jobs</p>
             </div>
-            <Button size="sm" variant="primary" onClick={() => setShowHolidayModal(true)} leftIcon={<Plus className="w-4 h-4" />}>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setShowHolidayModal(true)}
+              leftIcon={<Plus className="w-4 h-4" />}
+              className="rounded-xl font-semibold text-xs"
+            >
               Add Holiday
             </Button>
-          </CardHeader>
-          <CardContent>
+          </div>
+
+          <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-sm divide-y divide-border/60">
             {holidays.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground text-xs">No holidays configured yet.</div>
+              <div className="py-12 text-center text-muted-foreground text-xs">
+                No official holidays registered yet.
+              </div>
             ) : (
-              <div className="divide-y divide-border">
-                {holidays.map((h) => (
-                  <div key={h.id} className="py-3 flex items-center justify-between">
+              holidays.map((h) => (
+                <div key={h.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-pink-500/10 text-pink-500 flex items-center justify-center border border-pink-500/20">
+                      <CalendarDays className="w-4 h-4" />
+                    </div>
                     <div>
-                      <h4 className="font-bold text-foreground text-sm">{h.name}</h4>
-                      <p className="text-xs text-muted-foreground">
-                        Date: {new Date(h.date).toLocaleDateString()} {h.description ? `• ${h.description}` : ''}
+                      <h4 className="font-bold text-sm text-foreground">{h.name}</h4>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {new Date(h.date).toLocaleDateString()} {h.description ? `• ${h.description}` : ''}
                       </p>
                     </div>
-                    <Button size="sm" variant="ghost" className="text-destructive p-2" onClick={() => handleDeleteHoliday(h.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
                   </div>
-                ))}
-              </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:bg-destructive/10 rounded-lg p-2"
+                    onClick={() => handleDeleteHoliday(h.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))
             )}
-          </CardContent>
+          </div>
 
           {/* Add Holiday Modal */}
           <Modal
             isOpen={showHolidayModal}
             onClose={() => setShowHolidayModal(false)}
-            title="Add Official Holiday"
-            description="Add a holiday to prevent absent status marking for employees."
+            title="Register Official Holiday"
+            description="Add a holiday to prevent employees from being marked absent on this date."
           >
             <form onSubmit={handleAddHoliday} className="space-y-4 mt-2">
               <Input
                 label="Holiday Name *"
-                placeholder="e.g., Independence Day, Diwaali"
+                placeholder="e.g., Independence Day, Diwali"
                 value={holidayName}
                 onChange={(e) => setHolidayName(e.target.value)}
                 required
@@ -617,17 +744,19 @@ export const AdminDashboard: React.FC = () => {
                 onChange={(e) => setHolidayDesc(e.target.value)}
               />
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setShowHolidayModal(false)}>
+                <Button type="button" variant="outline" onClick={() => setShowHolidayModal(false)} className="rounded-xl">
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary">
+                <Button type="submit" variant="primary" className="rounded-xl font-bold">
                   Save Holiday
                 </Button>
               </div>
             </form>
           </Modal>
-        </Card>
+        </div>
       )}
     </div>
   );
 };
+
+export default AdminDashboard;
