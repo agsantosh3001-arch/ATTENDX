@@ -29,4 +29,9 @@ router.get('/settings', adminController.getSettings);
 router.put('/settings', validate(updateSettingsSchema), adminController.updateSettings);
 router.get('/audit-logs', adminController.getAuditLogs);
 
+// Holidays
+router.get('/holidays', adminController.getHolidays);
+router.post('/holidays', adminController.addHoliday);
+router.delete('/holidays/:id', adminController.deleteHoliday);
+
 export default router;

@@ -132,3 +132,41 @@ export async function getAuditLogs(req: Request, res: Response, next: NextFuncti
     next(error);
   }
 }
+
+export async function getHolidays(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const holidays = await adminService.getHolidays();
+    res.status(200).json({
+      success: true,
+      data: { holidays },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function addHoliday(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const holiday = await adminService.addHoliday(req.body);
+    res.status(201).json({
+      success: true,
+      data: { holiday },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteHoliday(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    await adminService.deleteHoliday(id);
+    res.status(200).json({
+      success: true,
+      data: { message: 'Holiday deleted successfully' },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+

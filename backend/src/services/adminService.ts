@@ -218,3 +218,36 @@ export async function getAuditLogs(limit: number = 50) {
   });
   return logs;
 }
+
+export async function getHolidays() {
+  const holidays = await prisma.holiday.findMany({
+    orderBy: { date: 'asc' },
+  });
+  return holidays;
+}
+
+export async function addHoliday(data: { date: string; name: string; description?: string }) {
+  const existing = await prisma.holiday.findFirst({
+    where: { date: new Date(data.date) },
+  });
+  if (existing) {
+    throw new AppError('HOLIDAY_EXISTS', 400, 'A holiday already exists on this date');
+  }
+
+  const holiday = await prisma.holiday.create({
+    data: {
+      date: new Date(data.date),
+      name: data.name,
+      description: data.description || null,
+    },
+  });
+  return holiday;
+}
+
+export async function deleteHoliday(id: string) {
+  const deleted = await prisma.holiday.delete({
+    where: { id },
+  });
+  return deleted;
+}
+

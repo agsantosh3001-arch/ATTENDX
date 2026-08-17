@@ -18,6 +18,8 @@ import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { AdminAuditLogsPage } from './pages/admin/AdminAuditLogsPage';
 import { Loader2 } from 'lucide-react';
 
+import { setStoredToken } from './utils/api';
+
 const AuthTokenHandler: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { refreshUser } = useAuth();
@@ -25,7 +27,7 @@ const AuthTokenHandler: React.FC<{ children: React.ReactNode }> = ({ children })
   useEffect(() => {
     const token = searchParams.get('token');
     if (token) {
-      localStorage.setItem('access_token', token);
+      setStoredToken(token);
       searchParams.delete('token');
       setSearchParams(searchParams, { replace: true });
       refreshUser();

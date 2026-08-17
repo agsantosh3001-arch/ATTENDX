@@ -377,8 +377,10 @@ export async function getMonthlyStats(
     },
   };
 
-  if (userRole !== 'admin' || query.employeeId) {
-    whereClause.employeeId = query.employeeId || userId;
+  if (userRole !== 'admin') {
+    whereClause.employeeId = userId;
+  } else if (query.employeeId && query.employeeId !== 'all') {
+    whereClause.employeeId = query.employeeId;
   }
 
   const records = await prisma.attendance.findMany({
