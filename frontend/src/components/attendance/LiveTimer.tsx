@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Clock, Play, Timer, Radio, Compass } from 'lucide-react';
+import { Clock, Radio, Timer, Sparkles } from 'lucide-react';
 
 interface LiveTimerProps {
   checkInTime?: string | null;
@@ -10,8 +10,9 @@ interface LiveTimerProps {
 export const LiveTimer: React.FC<LiveTimerProps> = ({ checkInTime: propCheckInTime, checkOutTime }) => {
   const [now, setNow] = useState(new Date());
 
-  // Use prop checkInTime or stored fallback for instant continuity across browser sessions
-  const activeCheckIn = propCheckInTime || (typeof window !== 'undefined' ? localStorage.getItem('attendx_active_check_in_time') : null);
+  const activeCheckIn =
+    propCheckInTime ||
+    (typeof window !== 'undefined' ? localStorage.getItem('attendx_active_check_in_time') : null);
 
   useEffect(() => {
     if (propCheckInTime && !checkOutTime) {
@@ -46,61 +47,56 @@ export const LiveTimer: React.FC<LiveTimerProps> = ({ checkInTime: propCheckInTi
   const elapsed = getElapsedTime();
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-card chrono-radar-bg p-6 sm:p-8 text-center shadow-xl">
-      {/* Ambient Radar Ring */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-        <div className="w-64 h-64 sm:w-80 sm:h-80 rounded-full border border-primary/40 animate-ping" style={{ animationDuration: '6s' }} />
-      </div>
-
+    <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card/80 backdrop-blur-md p-6 sm:p-8 text-center shadow-sm">
       <div className="relative z-10 space-y-4">
-        {/* Top Telemetry Header Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-bold font-sans tracking-wide">
+        {/* Telemetry Radar Badge */}
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold">
           <Radio className="w-3.5 h-3.5 animate-pulse text-primary" />
-          <span className="uppercase tracking-widest text-[10px]">Chrono Telemetry Radar</span>
+          <span className="uppercase tracking-wider text-[10px]">Chrono Telemetry Terminal</span>
         </div>
 
-        {/* Live Clock Display */}
+        {/* Real-time Clock */}
         <div className="space-y-1">
-          <div className="text-4xl sm:text-6xl font-black tracking-tight text-foreground font-mono drop-shadow-sm">
+          <div className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-foreground font-mono">
             {format(now, 'hh:mm:ss')}
-            <span className="text-lg sm:text-2xl font-bold text-muted-foreground ml-2 uppercase font-sans">
+            <span className="text-base sm:text-xl font-semibold text-muted-foreground ml-2 font-sans uppercase">
               {format(now, 'a')}
             </span>
           </div>
-          <p className="text-xs sm:text-sm font-bold text-muted-foreground font-sans uppercase tracking-wider">
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
             {format(now, 'EEEE, MMMM d, yyyy')}
           </p>
         </div>
 
-        {/* Active Shift Elapsed Timer Banner */}
+        {/* Active Shift Running Elapsed Counter */}
         {activeCheckIn && elapsed && (
-          <div className="pt-6 border-t border-border/60 w-full max-w-lg mx-auto space-y-3">
-            <div className="p-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold">
+          <div className="pt-5 border-t border-border/60 w-full max-w-md mx-auto space-y-3">
+            <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 text-left">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold shrink-0">
                   <Timer className="w-5 h-5" />
                 </div>
-                <div className="text-left font-sans">
-                  <p className="text-xs font-extrabold text-foreground">Shift Worked Today</p>
+                <div>
+                  <p className="text-xs font-bold text-foreground">Active Shift Elapsed</p>
                   <p className="text-[11px] text-muted-foreground">
                     Punched in at {format(new Date(activeCheckIn), 'hh:mm a')}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 font-mono text-xl sm:text-2xl font-black text-foreground">
-                <span className="bg-card px-2.5 py-1 rounded-xl border border-border shadow-xs">{elapsed.h}</span>
+              <div className="flex items-center gap-1 font-mono text-lg sm:text-xl font-bold text-foreground shrink-0">
+                <span className="bg-card px-2 py-0.5 rounded-lg border border-border/80">{elapsed.h}</span>
                 <span className="text-muted-foreground">:</span>
-                <span className="bg-card px-2.5 py-1 rounded-xl border border-border shadow-xs">{elapsed.m}</span>
+                <span className="bg-card px-2 py-0.5 rounded-lg border border-border/80">{elapsed.m}</span>
                 <span className="text-muted-foreground">:</span>
-                <span className="bg-card px-2.5 py-1 rounded-xl border border-border shadow-xs text-emerald-500">{elapsed.s}</span>
+                <span className="bg-card px-2 py-0.5 rounded-lg border border-border/80 text-emerald-500">{elapsed.s}</span>
               </div>
             </div>
 
             {!checkOutTime && (
-              <div className="flex items-center justify-center gap-2 text-[11px] text-emerald-500 font-bold bg-emerald-500/10 py-1.5 px-3 rounded-full border border-emerald-500/20 font-sans">
+              <div className="inline-flex items-center gap-2 text-[11px] text-emerald-500 font-semibold bg-emerald-500/10 py-1 px-3 rounded-full border border-emerald-500/20">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                <span>Shift Active — Timer running continuously across devices</span>
+                <span>Shift running live across all devices</span>
               </div>
             )}
           </div>
@@ -109,3 +105,5 @@ export const LiveTimer: React.FC<LiveTimerProps> = ({ checkInTime: propCheckInTi
     </div>
   );
 };
+
+export default LiveTimer;
