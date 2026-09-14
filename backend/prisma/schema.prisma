@@ -34,6 +34,12 @@ enum NotificationType {
   error
 }
 
+enum DeviceStatus {
+  active
+  revoked
+  disabled
+}
+
 model User {
   id                  String     @id @default(uuid())
   email               String     @unique
@@ -53,6 +59,7 @@ model User {
   updatedAt           DateTime   @updatedAt @map("updated_at")
 
   sessions      Session[]
+  devices       RegisteredDevice[]
   attendance    Attendance[]
   notifications Notification[]
   auditLogs     AuditLog[]
@@ -157,3 +164,30 @@ model Holiday {
 
   @@map("holidays")
 }
+
+model RegisteredDevice {
+  id                   String       @id @default(uuid())
+  employeeId           String       @map("employee_id")
+  deviceRegistrationId String       @unique @map("device_registration_id")
+  deviceLabel          String?      @map("device_label")
+  platform             String?
+  browserFamily        String?      @map("browser_family")
+  osFamily             String?      @map("os_family")
+  userAgentMetadata    String?      @map("user_agent_metadata")
+  userAgentHash        String?      @map("user_agent_hash")
+  status               DeviceStatus @default(active)
+  registeredAt         DateTime     @default(now()) @map("registered_at")
+  lastSeenAt           DateTime     @default(now()) @map("last_seen_at")
+  lastLoginAt          DateTime?    @map("last_login_at")
+  revokedAt            DateTime?    @map("revoked_at")
+  revocationReason     String?      @map("revocation_reason")
+
+  employee User @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([deviceRegistrationId])
+  @@index([status])
+  @@index([registeredAt])
+  @@map("registered_devices")
+}
+

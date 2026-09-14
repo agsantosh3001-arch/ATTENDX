@@ -170,3 +170,49 @@ export async function deleteHoliday(req: Request, res: Response, next: NextFunct
   }
 }
 
+export async function getDevices(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const devices = await adminService.listAllDevices();
+    res.status(200).json({
+      success: true,
+      data: { devices },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function revokeDevice(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.user) throw new AppError('UNAUTHORIZED', 401, 'Authentication required');
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const { reason } = req.body || {};
+
+    const updated = await adminService.revokeDevice(id, req.user.id, reason, ipAddress);
+    res.status(200).json({
+      success: true,
+      data: { device: updated },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteDevice(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (!req.user) throw new AppError('UNAUTHORIZED', 401, 'Authentication required');
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const ipAddress = req.ip || req.socket.remoteAddress;
+
+    const result = await adminService.deleteDevice(id, req.user.id, ipAddress);
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+

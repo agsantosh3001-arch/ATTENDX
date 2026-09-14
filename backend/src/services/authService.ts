@@ -172,7 +172,7 @@ export async function processGoogleAuthUser(profile: {
   });
 
   if (!user) {
-    const isApprovedPreset = ['vivaninteriors@gmail.com', 'alex.rivera@attendx.com'].includes(profile.email.toLowerCase());
+    const isApprovedPreset = ['vivaninteriors@gmail.com', 'vikashreal2@gmail.com'].includes(profile.email.toLowerCase());
     user = await prisma.user.create({
       data: {
         email: profile.email.toLowerCase(),
@@ -181,8 +181,8 @@ export async function processGoogleAuthUser(profile: {
         avatarUrl: profile.avatarUrl || null,
         role: 'employee',
         status: isApprovedPreset ? 'approved' : 'pending',
-        department: isApprovedPreset ? (profile.email.includes('vivan') ? 'Engineering' : 'Product & Design') : null,
-        designation: isApprovedPreset ? (profile.email.includes('vivan') ? 'Senior Lead Architect' : 'Senior Product Manager') : null,
+        department: isApprovedPreset ? (profile.email.includes('vivan') ? 'Engineering' : 'Operations') : null,
+        designation: isApprovedPreset ? (profile.email.includes('vivan') ? 'Senior Lead Architect' : 'Senior Specialist') : null,
       },
     });
   } else if (!user.googleId) {
@@ -198,7 +198,14 @@ export async function processGoogleAuthUser(profile: {
   return user;
 }
 
-export async function completeEmployeeSession(userId: string, ipAddress?: string, userAgent?: string) {
+import { validateOrRegisterDevice } from './deviceService';
+
+export async function completeEmployeeSession(
+  userId: string,
+  reqDeviceId?: string,
+  ipAddress?: string,
+  userAgent?: string
+) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
   });
@@ -206,6 +213,9 @@ export async function completeEmployeeSession(userId: string, ipAddress?: string
   if (!user) {
     throw new AppError('USER_NOT_FOUND', 404, 'User not found');
   }
+
+  // Validate or Register Device Binding
+  const deviceResult = await validateOrRegisterDevice(user.id, reqDeviceId, userAgent, ipAddress);
 
   const accessToken = generateAccessToken(user);
   const refreshToken = generateRefreshToken();
@@ -229,7 +239,11 @@ export async function completeEmployeeSession(userId: string, ipAddress?: string
     },
   });
 
-  await logAuditEvent(user.id, 'user.login', ipAddress, { method: 'google_oauth' });
+  await logAuditEvent(user.id, 'user.login', ipAddress, {
+    method: 'google_oauth',
+    deviceId: deviceResult.device.id,
+    deviceRegistrationId: deviceResult.deviceRegistrationId,
+  });
 
   const safeUser = {
     id: user.id,
@@ -246,6 +260,8 @@ export async function completeEmployeeSession(userId: string, ipAddress?: string
     accessToken,
     refreshToken,
     user: safeUser,
+    deviceRegistrationId: deviceResult.deviceRegistrationId,
+    isNewDevice: deviceResult.isNew,
   };
 }
 
@@ -334,3 +350,6 @@ export async function logoutUser(userId: string, ipAddress?: string) {
   });
   await logAuditEvent(userId, 'user.logout', ipAddress);
 }
+
+export { getDeviceStatus } from './deviceService';
+

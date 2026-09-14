@@ -61,9 +61,8 @@ async function getEmployeeToken(email, name) {
 async function run() {
   console.log('Fetching auth tokens...');
   const adminToken = await getAdminToken();
-  const vivanToken = await getEmployeeToken('vivaninteriors@gmail.com', 'VIVAN');
-  const sarahToken = await getEmployeeToken('sarah.connor@attendx.com', 'Sarah Connor');
-  const johnToken = await getEmployeeToken('john.doe@attendx.com', 'John Doe');
+  const vivanToken = await getEmployeeToken('vivaninteriors@gmail.com', 'Vivan Agarwal');
+  const amanToken = await getEmployeeToken('vikashreal2@gmail.com', 'Aman Rajak');
 
   console.log('Tokens acquired.');
 

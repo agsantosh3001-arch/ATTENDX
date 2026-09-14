@@ -62,3 +62,36 @@ export interface NotificationItem {
   isRead: boolean;
   createdAt: string;
 }
+
+export interface RegisteredDevice {
+  id: string;
+  employeeId: string;
+  deviceRegistrationId: string;
+  deviceLabel?: string | null;
+  platform?: string | null;
+  browserFamily?: string | null;
+  osFamily?: string | null;
+  userAgentMetadata?: string | null;
+  status: 'active' | 'revoked' | 'disabled';
+  registeredAt: string;
+  lastSeenAt: string;
+  lastLoginAt?: string | null;
+  revokedAt?: string | null;
+  revocationReason?: string | null;
+  employee?: User;
+}
+
+export interface DeviceStatusResponse {
+  isRegistered: boolean;
+  status?: string;
+  deviceLabel?: string;
+  user?: {
+    fullName: string;
+    maskedEmail: string;
+    avatarUrl?: string | null;
+    department?: string | null;
+    designation?: string | null;
+    status: UserStatus;
+  };
+}
+

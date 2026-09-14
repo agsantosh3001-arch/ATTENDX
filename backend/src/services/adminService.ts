@@ -251,3 +251,6 @@ export async function deleteHoliday(id: string) {
   return deleted;
 }
 
+export { listAllDevices, revokeDevice, deleteDevice } from './deviceService';
+
+

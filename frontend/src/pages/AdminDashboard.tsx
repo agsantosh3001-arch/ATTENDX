@@ -27,17 +27,21 @@ import {
   Sliders,
   CalendarDays,
   Sparkles,
+  Laptop,
+  Smartphone,
+  ShieldAlert,
 } from 'lucide-react';
 import { api } from '../utils/api';
-import { User, OfficeSettings, AttendanceRecord, Holiday } from '../types';
+import { User, OfficeSettings, AttendanceRecord, Holiday, RegisteredDevice } from '../types';
 
 export const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'approvals' | 'employees' | 'attendance' | 'settings' | 'holidays'>('approvals');
+  const [activeTab, setActiveTab] = useState<'approvals' | 'employees' | 'attendance' | 'devices' | 'settings' | 'holidays'>('approvals');
   const [loading, setLoading] = useState(true);
 
   // Data states
   const [pendingEmployees, setPendingEmployees] = useState<User[]>([]);
   const [allEmployees, setAllEmployees] = useState<User[]>([]);
+  const [devices, setDevices] = useState<RegisteredDevice[]>([]);
   const [todayAttendance, setTodayAttendance] = useState<AttendanceRecord[]>([]);
   const [settings, setSettings] = useState<OfficeSettings | null>(null);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
@@ -112,21 +116,51 @@ export const AdminDashboard: React.FC = () => {
     }
   }, []);
 
+  const fetchDevices = useCallback(async () => {
+    try {
+      const res = await api.get('/admin/devices');
+      if (res.data?.success) setDevices(res.data.data.devices || []);
+    } catch (e) {
+      console.error('Error fetching registered devices:', e);
+    }
+  }, []);
+
   const loadAll = useCallback(async () => {
     setLoading(true);
     await Promise.all([
       fetchPending(),
       fetchEmployees(),
+      fetchDevices(),
       fetchTodayAttendance(),
       fetchSettings(),
       fetchHolidays(),
     ]);
     setLoading(false);
-  }, [fetchPending, fetchEmployees, fetchTodayAttendance, fetchSettings, fetchHolidays]);
+  }, [fetchPending, fetchEmployees, fetchDevices, fetchTodayAttendance, fetchSettings, fetchHolidays]);
 
   useEffect(() => {
     loadAll();
   }, [loadAll]);
+
+  const handleRevokeDevice = async (id: string) => {
+    if (!confirm('Are you sure you want to revoke this device? The user session will be terminated.')) return;
+    try {
+      await api.post(`/admin/devices/${id}/revoke`, { reason: 'Admin revoked from dashboard' });
+      await fetchDevices();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Failed to revoke device.');
+    }
+  };
+
+  const handleDeleteDevice = async (id: string) => {
+    if (!confirm('Are you sure you want to remove this device registration record?')) return;
+    try {
+      await api.delete(`/admin/devices/${id}`);
+      await fetchDevices();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Failed to delete device.');
+    }
+  };
 
   // Actions
   const handleApprove = async (id: string) => {
@@ -336,6 +370,23 @@ export const AdminDashboard: React.FC = () => {
         >
           <CheckCircle className="w-4 h-4 text-emerald-500" />
           Attendance Logs
+        </button>
+
+        <button
+          onClick={() => setActiveTab('devices')}
+          className={`flex-1 py-2.5 px-4 font-semibold text-xs rounded-xl transition-all whitespace-nowrap flex items-center justify-center gap-2 ${
+            activeTab === 'devices'
+              ? 'bg-card text-foreground shadow-sm border border-border/80'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Laptop className="w-4 h-4 text-cyan-500" />
+          Registered Devices
+          {devices.length > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] bg-cyan-500/20 text-cyan-400 font-bold">
+              {devices.length}
+            </span>
+          )}
         </button>
 
         <button
@@ -562,7 +613,126 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* 4. Geofence Settings Tab */}
+      {/* 4. Registered Devices Tab */}
+      {activeTab === 'devices' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <Laptop className="w-5 h-5 text-cyan-500" />
+                Registered Employee Devices
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Hardware credentials bound to authenticated employee accounts
+              </p>
+            </div>
+            <Badge variant="default" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 font-mono">
+              {devices.length} Devices Active
+            </Badge>
+          </div>
+
+          <div className="rounded-2xl border border-border/80 bg-card overflow-hidden shadow-sm">
+            {devices.length === 0 ? (
+              <div className="py-12 text-center text-muted-foreground text-xs">
+                No registered devices found. Devices are registered automatically upon employee login.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/30 text-muted-foreground font-semibold uppercase tracking-wider">
+                      <th className="py-3.5 px-4">Bound Employee</th>
+                      <th className="py-3.5 px-4">Device & Platform</th>
+                      <th className="py-3.5 px-4">First Registered</th>
+                      <th className="py-3.5 px-4">Last Activity</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {devices.map((dev) => (
+                      <tr key={dev.id} className="hover:bg-muted/40 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-3">
+                            <UserAvatar
+                              name={dev.employee ? dev.employee.fullName || dev.employee.email : 'Employee'}
+                              email={dev.employee?.email}
+                            />
+                            <div>
+                              <p className="font-bold text-foreground text-sm">
+                                {dev.employee ? dev.employee.fullName || '—' : '—'}
+                              </p>
+                              <p className="text-xs text-muted-foreground font-mono">
+                                {dev.employee ? dev.employee.email : '—'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2">
+                            {dev.platform?.includes('Mobile') ? (
+                              <Smartphone className="w-4 h-4 text-amber-500 shrink-0" />
+                            ) : (
+                              <Laptop className="w-4 h-4 text-cyan-500 shrink-0" />
+                            )}
+                            <div>
+                              <p className="font-semibold text-foreground">{dev.deviceLabel || 'Browser Session'}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono">{dev.platform || 'Desktop'}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-muted-foreground">
+                          {new Date(dev.registeredAt).toLocaleDateString()} {new Date(dev.registeredAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-foreground font-medium">
+                          {new Date(dev.lastSeenAt).toLocaleDateString()} {new Date(dev.lastSeenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              dev.status === 'active'
+                                ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/30'
+                                : dev.status === 'revoked'
+                                ? 'bg-destructive/10 text-destructive border border-destructive/30'
+                                : 'bg-muted text-muted-foreground'
+                            }`}
+                          >
+                            {dev.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {dev.status === 'active' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-destructive hover:bg-destructive/10 border-destructive/30 rounded-xl h-8 text-[11px] font-semibold"
+                                onClick={() => handleRevokeDevice(dev.id)}
+                              >
+                                Revoke
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-muted-foreground hover:text-destructive rounded-xl h-8 w-8 p-0"
+                              onClick={() => handleDeleteDevice(dev.id)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 5. Geofence Settings Tab */}
       {activeTab === 'settings' && (
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="rounded-2xl border border-border/80 bg-card p-6 sm:p-8 shadow-sm space-y-6">

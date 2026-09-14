@@ -8,6 +8,7 @@ import { authRateLimiter } from '../middleware/rateLimiter';
 import { adminLoginSchema, onboardingSchema } from '../validators/authValidators';
 import * as authService from '../services/authService';
 import { config } from '../config/env';
+import { prisma } from '../config/database';
 import { AppError } from '../utils/appError';
 
 const router = Router();
@@ -45,62 +46,116 @@ const getClientOrigin = (req: Request): string => {
   return config.frontendUrl;
 };
 
+// Check Device Status (No Directory Leakage)
+router.get('/device-status', authController.getDeviceStatus);
+
 // Google OAuth Trigger
-router.get('/google', (req: Request, res: Response, next: NextFunction) => {
-  const referer = req.headers.referer || req.headers.origin;
-  let clientOrigin = config.frontendUrl;
-  if (referer) {
-    try {
-      clientOrigin = new URL(referer).origin;
-    } catch {
-      // ignore
+router.get('/google', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const referer = req.headers.referer || req.headers.origin;
+    let clientOrigin = config.frontendUrl;
+    if (referer) {
+      try {
+        clientOrigin = new URL(referer).origin;
+      } catch {
+        // ignore
+      }
+    } else if (req.headers.host) {
+      clientOrigin = `${req.protocol || 'http'}://${req.headers.host}`;
     }
-  } else if (req.headers.host) {
-    clientOrigin = `${req.protocol || 'http'}://${req.headers.host}`;
-  }
 
-  res.cookie('client_origin', clientOrigin, {
-    httpOnly: true,
-    secure: config.nodeEnv === 'production',
-    sameSite: 'lax',
-    maxAge: 10 * 60 * 1000,
-  });
+    res.cookie('client_origin', clientOrigin, {
+      httpOnly: true,
+      secure: config.nodeEnv === 'production',
+      sameSite: 'lax',
+      maxAge: 10 * 60 * 1000,
+    });
 
-  if (config.googleClientId === 'mock_google_client_id') {
-    return res.redirect(`${clientOrigin}/google-picker`);
+    if (config.googleClientId === 'mock_google_client_id') {
+      // Check if current browser already has a registered device bound to an employee
+      const deviceId = req.cookies?.attendx_device_id || (req.headers['x-device-id'] as string);
+      const status = await authService.getDeviceStatus(deviceId);
+
+      if (status.isRegistered && status.user) {
+        // Automatically authenticate the bound employee securely
+        return res.redirect(`${clientOrigin}/api/auth/google/dev-select`);
+      }
+
+      // If unregistered device, redirect to login with single-account onboarding prompt
+      return res.redirect(`${clientOrigin}/login?mode=register`);
+    }
+
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  } catch (error) {
+    next(error);
   }
-  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
 
-// Development Mock Account Selector Handler
+// Secure Dev Google Authentication Handler (Enforces Device Binding)
 router.get('/google/dev-select', async (req: Request, res: Response, next: NextFunction) => {
+  const clientOrigin = getClientOrigin(req);
   try {
     if (config.nodeEnv === 'production' && config.googleClientId !== 'mock_google_client_id') {
       return next(new AppError('FORBIDDEN', 403, 'Mock account picker is disabled in production with real OAuth.'));
     }
 
-    const email = (req.query.email as string) || 'john.doe@attendx.com';
-    const fullName = (req.query.name as string) || 'John Doe';
-    const googleId = `google_mock_${crypto.createHash('md5').update(email).digest('hex').substring(0, 10)}`;
+    const deviceId = req.cookies?.attendx_device_id || (req.headers['x-device-id'] as string);
+    const ipAddress = req.ip || req.socket.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+
+    // If device is already registered, find bound user directly
+    let targetEmail = (req.query.email as string) || '';
+    let targetName = (req.query.name as string) || '';
+
+    if (deviceId && !targetEmail) {
+      const boundDevice = await authService.getDeviceStatus(deviceId);
+      if (boundDevice.isRegistered && boundDevice.user) {
+        // Bound account discovered securely through device cookie
+        const fullDevice = await prisma.registeredDevice.findUnique({
+          where: { deviceRegistrationId: deviceId },
+          include: { employee: true },
+        });
+        if (fullDevice?.employee) {
+          targetEmail = fullDevice.employee.email;
+          targetName = fullDevice.employee.fullName || 'Employee';
+        }
+      }
+    }
+
+    // Default fallback for first-time developer registration if no email provided
+    if (!targetEmail) {
+      targetEmail = 'vivaninteriors@gmail.com';
+      targetName = 'VIVAN';
+    }
+
+    const googleId = `google_mock_${crypto.createHash('md5').update(targetEmail.toLowerCase()).digest('hex').substring(0, 10)}`;
 
     const mockProfile = {
       googleId,
-      email: email.toLowerCase(),
-      fullName,
-      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(fullName)}`,
+      email: targetEmail.toLowerCase(),
+      fullName: targetName || 'Employee',
+      avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(targetName || targetEmail)}`,
     };
 
     const user = await authService.processGoogleAuthUser(mockProfile);
-    const ipAddress = req.ip || req.socket.remoteAddress;
-    const userAgent = req.headers['user-agent'];
-    const sessionResult = await authService.completeEmployeeSession(user.id, ipAddress, userAgent);
-    const clientOrigin = getClientOrigin(req);
 
+    // Validate or Register Device Binding
+    const sessionResult = await authService.completeEmployeeSession(user.id, deviceId, ipAddress, userAgent);
+
+    // Set persistent Device ID Cookie (1 Year)
+    res.cookie('attendx_device_id', sessionResult.deviceRegistrationId, {
+      httpOnly: true,
+      secure: config.nodeEnv === 'production',
+      sameSite: 'lax',
+      maxAge: 365 * 24 * 60 * 60 * 1000,
+    });
+
+    // Set Refresh Token Cookie (14 Days)
     res.cookie('refreshToken', sessionResult.refreshToken, {
       httpOnly: true,
       secure: config.nodeEnv === 'production',
       sameSite: 'lax',
-      maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
+      maxAge: 14 * 24 * 60 * 60 * 1000,
     });
 
     if (!user.department || !user.designation) {
@@ -111,8 +166,20 @@ router.get('/google/dev-select', async (req: Request, res: Response, next: NextF
       return res.redirect(`${clientOrigin}/pending-approval?token=${sessionResult.accessToken}`);
     }
 
+    if (user.status === 'rejected') {
+      return res.redirect(`${clientOrigin}/rejected`);
+    }
+
+    if (user.status === 'deactivated') {
+      return res.redirect(`${clientOrigin}/deactivated`);
+    }
+
     res.redirect(`${clientOrigin}/dashboard?token=${sessionResult.accessToken}`);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.statusCode === 403) {
+      const errCode = error.code === 'DEVICE_REVOKED' ? 'device_revoked' : 'device_mismatch';
+      return res.redirect(`${clientOrigin}/login?error=${errCode}`);
+    }
     next(error);
   }
 });
@@ -131,13 +198,24 @@ router.get(
       try {
         const ipAddress = req.ip || req.socket.remoteAddress;
         const userAgent = req.headers['user-agent'];
-        const sessionResult = await authService.completeEmployeeSession(user.id, ipAddress, userAgent);
+        const deviceId = req.cookies?.attendx_device_id || (req.headers['x-device-id'] as string);
 
+        const sessionResult = await authService.completeEmployeeSession(user.id, deviceId, ipAddress, userAgent);
+
+        // Set Device Cookie
+        res.cookie('attendx_device_id', sessionResult.deviceRegistrationId, {
+          httpOnly: true,
+          secure: config.nodeEnv === 'production',
+          sameSite: 'lax',
+          maxAge: 365 * 24 * 60 * 60 * 1000,
+        });
+
+        // Set Refresh Token Cookie
         res.cookie('refreshToken', sessionResult.refreshToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax',
-          maxAge: 7 * 24 * 60 * 60 * 1000,
+          maxAge: 14 * 24 * 60 * 60 * 1000,
         });
 
         // Route user based on profile state and approval status
@@ -158,7 +236,11 @@ router.get(
         }
 
         res.redirect(`${clientOrigin}/dashboard?token=${sessionResult.accessToken}`);
-      } catch (error) {
+      } catch (error: any) {
+        if (error.statusCode === 403) {
+          const errCode = error.code === 'DEVICE_REVOKED' ? 'device_revoked' : 'device_mismatch';
+          return res.redirect(`${clientOrigin}/login?error=${errCode}`);
+        }
         next(error);
       }
     })(req, res, next);

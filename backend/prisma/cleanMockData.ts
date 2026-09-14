@@ -3,34 +3,25 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function cleanMockData() {
-  console.log('🧹 Cleaning pre-added mock employee data...');
+  console.log('🧹 Cleaning all dummy/mock employee accounts from database...');
 
-  // Delete attendance records associated with mock employees ending with @attendx.com
-  const deletedAttendance = await prisma.attendance.deleteMany({
-    where: {
-      employee: {
-        email: {
-          endsWith: '@attendx.com',
-          not: 'admin@attendx.com',
-        },
-      },
-    },
-  });
-  console.log(`Deleted ${deletedAttendance.count} mock attendance records.`);
+  const allowedEmails = [
+    'vivaninteriors@gmail.com',
+    'vikashreal2@gmail.com',
+    'admin@attendx.com',
+  ];
 
-  // Delete mock employees ending with @attendx.com (excluding admin@attendx.com)
-  const deletedUsers = await prisma.user.deleteMany({
+  const deleted = await prisma.user.deleteMany({
     where: {
       email: {
-        endsWith: '@attendx.com',
-        not: 'admin@attendx.com',
+        notIn: allowedEmails,
       },
     },
   });
-  console.log(`Deleted ${deletedUsers.count} mock employee accounts.`);
 
-  // Also update seed.ts so it doesn't re-seed mock employees in future
-  console.log('Current remaining users in database:');
+  console.log(`Deleted ${deleted.count} dummy user accounts.`);
+
+  console.log('\nRemaining Users in Database:');
   const remaining = await prisma.user.findMany({
     select: { id: true, email: true, fullName: true, role: true, status: true },
   });

@@ -34,4 +34,10 @@ router.get('/holidays', adminController.getHolidays);
 router.post('/holidays', adminController.addHoliday);
 router.delete('/holidays/:id', adminController.deleteHoliday);
 
+// Device Management
+router.get('/devices', adminController.getDevices);
+router.post('/devices/:id/revoke', adminController.revokeDevice);
+router.delete('/devices/:id', adminController.deleteDevice);
+
 export default router;
+

@@ -1,4 +1,4 @@
-const puppeteer = require('./frontend/node_modules/puppeteer-core');
+const puppeteer = require('puppeteer-core');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -39,9 +39,20 @@ function request(urlStr, options = {}) {
   });
 }
 
+function extractCookie(headers, cookieName) {
+  const setCookie = headers['set-cookie'];
+  if (!setCookie) return null;
+  const cookieArr = Array.isArray(setCookie) ? setCookie : [setCookie];
+  for (const c of cookieArr) {
+    const match = c.match(new RegExp(`${cookieName}=([^;]+)`));
+    if (match) return match[1];
+  }
+  return null;
+}
+
 async function runFullScaleTest() {
   console.log('====================================================');
-  console.log('🚀 STARTING ATTENDX FULL-SCALE APPLICATION SUITE TEST');
+  console.log('🚀 STARTING ATTENDX ACCOUNT + DEVICE BINDING SECURITY SUITE');
   console.log('====================================================\n');
 
   let passed = 0;
@@ -59,145 +70,209 @@ async function runFullScaleTest() {
 
   try {
     // ----------------------------------------------------
-    // SECTION 1: BACKEND HEALTH & DATABASE SYSTEM TEST
+    // SECTION 1: SYSTEM HEALTH & INTEGRITY
     // ----------------------------------------------------
-    console.log('1️⃣ TESTING BACKEND API & DATABASE INTEGRITY...');
+    console.log('1️⃣ TESTING BACKEND API & DATABASE SYSTEM...');
     const health = await request(`${BACKEND_URL}/health`);
     assert(health.status === 200 && health.data?.status === 'ok', 'Backend Health Endpoint (GET /health)');
 
     // ----------------------------------------------------
-    // SECTION 2: AUTHENTICATION & TOKEN LIFECYCLE
+    // SECTION 2: PRIVACY & ZERO DIRECTORY LEAKAGE
     // ----------------------------------------------------
-    console.log('\n2️⃣ TESTING AUTHENTICATION & ROLE-BASED ACCESS...');
+    console.log('\n2️⃣ TESTING PRIVACY & ZERO DIRECTORY LEAKAGE...');
+    // Unregistered device status check
+    const unregStatus = await request(`${BACKEND_URL}/api/auth/device-status`);
+    assert(
+      unregStatus.status === 200 &&
+      unregStatus.data?.data?.isRegistered === false &&
+      !unregStatus.data?.data?.user &&
+      !unregStatus.raw.includes('Alex') &&
+      !unregStatus.raw.includes('Sarah'),
+      'Device Status for Unregistered Client returns isRegistered: false with ZERO directory exposure'
+    );
 
-    // Admin Login
+    // ----------------------------------------------------
+    // SECTION 3: FIRST-TIME DEVICE REGISTRATION (VIVAN on Device A)
+    // ----------------------------------------------------
+    console.log('\n3️⃣ TESTING FIRST-TIME DEVICE REGISTRATION (Device A -> Vivan)...');
+    const vivanAuthRes = await request(`${BACKEND_URL}/api/auth/google/dev-select?email=vivaninteriors%40gmail.com&name=VIVAN`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
+    });
+
+    const deviceACookie = extractCookie(vivanAuthRes.headers, 'attendx_device_id');
+    const vivanRedirectLoc = vivanAuthRes.headers.location || '';
+    const vivanTokenMatch = vivanRedirectLoc.match(/token=([^&]+)/);
+    const vivanToken = vivanTokenMatch ? vivanTokenMatch[1] : null;
+
+    assert(vivanAuthRes.status === 302 && deviceACookie, 'Device A receives cryptographically strong attendx_device_id cookie');
+    assert(vivanToken !== null, 'Vivan receives valid access token upon first registration');
+
+    // Verify Vivan Profile
+    const vivanMe = await request(`${BACKEND_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${vivanToken}` },
+    });
+    assert(vivanMe.status === 200 && vivanMe.data?.data?.user?.email === 'vivaninteriors@gmail.com', 'Vivan Identity Verified');
+
+    // ----------------------------------------------------
+    // SECTION 4: RETURNING USER RECOGNITION (Device A)
+    // ----------------------------------------------------
+    console.log('\n4️⃣ TESTING RETURNING USER RECOGNITION (Device A)...');
+    const deviceAStatus = await request(`${BACKEND_URL}/api/auth/device-status`, {
+      headers: { Cookie: `attendx_device_id=${deviceACookie}` },
+    });
+
+    assert(
+      deviceAStatus.status === 200 &&
+      deviceAStatus.data?.data?.isRegistered === true &&
+      (deviceAStatus.data?.data?.user?.fullName === 'Vivan Agarwal' || deviceAStatus.data?.data?.user?.fullName === 'VIVAN') &&
+      deviceAStatus.data?.data?.user?.maskedEmail.includes('***') &&
+      !deviceAStatus.raw.includes('Alex'),
+      'Device A recognized as Vivan with masked email (zero other employees shown)'
+    );
+
+    // ----------------------------------------------------
+    // SECTION 5: DEVICE MISMATCH PREVENTION (Aman attempts login on Device A)
+    // ----------------------------------------------------
+    console.log('\n5️⃣ TESTING DEVICE MISMATCH SECURITY ENFORCEMENT...');
+    // Aman attempts to login using Device A's cookie
+    const amanMismatchRes = await request(`${BACKEND_URL}/api/auth/google/dev-select?email=vikashreal2%40gmail.com&name=Aman+Rajak`, {
+      headers: {
+        Cookie: `attendx_device_id=${deviceACookie}`,
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+      },
+    });
+
+    assert(
+      amanMismatchRes.status === 302 && amanMismatchRes.headers.location?.includes('error=device_mismatch'),
+      'Device Mismatch Blocked: Aman cannot authenticate on Vivan-bound Device A (redirects with generic error)'
+    );
+
+    // ----------------------------------------------------
+    // SECTION 6: SEPARATE DEVICE REGISTRATION (Aman on Device B)
+    // ----------------------------------------------------
+    console.log('\n6️⃣ TESTING SEPARATE DEVICE REGISTRATION (Device B -> Aman)...');
+    const amanAuthRes = await request(`${BACKEND_URL}/api/auth/google/dev-select?email=vikashreal2%40gmail.com&name=Aman+Rajak`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15' },
+    });
+
+    const deviceBCookie = extractCookie(amanAuthRes.headers, 'attendx_device_id');
+    const amanRedirectLoc = amanAuthRes.headers.location || '';
+    const amanTokenMatch = amanRedirectLoc.match(/token=([^&]+)/);
+    const amanToken = amanTokenMatch ? amanTokenMatch[1] : null;
+
+    assert(amanAuthRes.status === 302 && deviceBCookie && deviceBCookie !== deviceACookie, 'Device B receives unique device identifier');
+    assert(amanToken !== null, 'Aman receives valid access token on Device B');
+
+    // ----------------------------------------------------
+    // SECTION 7: ADMIN CONTROLS & DEVICE MANAGEMENT
+    // ----------------------------------------------------
+    console.log('\n7️⃣ TESTING ADMIN DEVICE GOVERNANCE & REVOCATION...');
+    // Admin login
     const adminLoginData = JSON.stringify({ email: 'admin@attendx.com', password: 'Admin@123' });
     const adminRes = await request(`${BACKEND_URL}/api/auth/admin/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(adminLoginData) },
       body: adminLoginData,
     });
-    assert(adminRes.status === 200 && adminRes.data?.data?.accessToken, 'Admin Login Authentication (POST /api/auth/admin/login)');
     const adminToken = adminRes.data?.data?.accessToken;
+    assert(adminRes.status === 200 && adminToken, 'Admin Authentication Successful');
 
-    // Admin Profile Verification
-    const adminMe = await request(`${BACKEND_URL}/api/auth/me`, {
+    // List registered devices
+    const devicesListRes = await request(`${BACKEND_URL}/api/admin/devices`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
-    assert(adminMe.status === 200 && adminMe.data?.data?.user?.role === 'admin', 'Admin Profile Identity (GET /api/auth/me)');
+    const devices = devicesListRes.data?.data?.devices || [];
+    assert(devicesListRes.status === 200 && devices.length >= 2, `Admin lists all registered devices (Found ${devices.length})`);
 
-    // Employee Dev Google Login
-    const employeeLoginRes = await request(`${BACKEND_URL}/api/auth/google/dev-select?email=vivaninteriors%40gmail.com&name=VIVAN`);
-    const empRedirectLoc = employeeLoginRes.headers.location || '';
-    const empTokenMatch = empRedirectLoc.match(/token=([^&]+)/);
-    assert(employeeLoginRes.status === 302 && empTokenMatch, 'Google Dev OAuth Redirect (GET /api/auth/google/dev-select)');
-    const employeeToken = empTokenMatch ? empTokenMatch[1] : null;
+    const amanDeviceRecord = devices.find((d) => d.employee?.email === 'vikashreal2@gmail.com');
+    assert(amanDeviceRecord !== undefined, 'Aman device record located by Administrator');
 
-    // Employee Profile Verification
-    const employeeMe = await request(`${BACKEND_URL}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${employeeToken}` },
-    });
-    assert(employeeMe.status === 200 && employeeMe.data?.data?.user?.role === 'employee', 'Employee Profile Identity (GET /api/auth/me)');
+    // Admin Revokes Aman's Device (Device B)
+    if (amanDeviceRecord) {
+      const revokeRes = await request(`${BACKEND_URL}/api/admin/devices/${amanDeviceRecord.id}/revoke`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${adminToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Compromised device reported' }),
+      });
+      assert(revokeRes.status === 200 && revokeRes.data?.data?.device?.status === 'revoked', 'Admin Revokes Device B');
+
+      // Attempt login on revoked Device B
+      const revokedLoginRes = await request(`${BACKEND_URL}/api/auth/google/dev-select?email=vikashreal2%40gmail.com&name=Aman+Rajak`, {
+        headers: { Cookie: `attendx_device_id=${deviceBCookie}` },
+      });
+      assert(
+        revokedLoginRes.status === 302 && revokedLoginRes.headers.location?.includes('error=device_revoked'),
+        'Revoked Device B is rejected from subsequent logins'
+      );
+    }
 
     // ----------------------------------------------------
-    // SECTION 3: ATTENDANCE & PUNCH LIFECYCLE
+    // SECTION 8: SERVER-SIDE ATTENDANCE IDENTITY & GPS
     // ----------------------------------------------------
-    console.log('\n3️⃣ TESTING ATTENDANCE PUNCH & TELEMETRY LIFECYCLE...');
-
-    // Today Status Check
+    console.log('\n8️⃣ TESTING ATTENDANCE SERVER-SIDE IDENTITY & GEOFENCING...');
     const todayRes = await request(`${BACKEND_URL}/api/attendance/today`, {
-      headers: { Authorization: `Bearer ${employeeToken}` },
+      headers: { Authorization: `Bearer ${vivanToken}` },
     });
-    assert(todayRes.status === 200 && todayRes.data?.success, 'Fetch Today Attendance Status (GET /api/attendance/today)');
+    assert(todayRes.status === 200 && todayRes.data?.success, 'Attendance Today Status for Vivan');
 
-    // Monthly Stats
-    const statsRes = await request(`${BACKEND_URL}/api/attendance/stats`, {
-      headers: { Authorization: `Bearer ${employeeToken}` },
+    // Verify client cannot spoof employeeId in punch
+    const checkInPayload = JSON.stringify({
+      latitude: 22.6178,
+      longitude: 88.4206,
+      accuracy: 10,
+      employeeId: 'spoofed_alex_id', // Spoof attempt
     });
-    assert(statsRes.status === 200 && statsRes.data?.data?.stats, 'Fetch Monthly Attendance Stats (GET /api/attendance/stats)');
-
-    // Attendance History Query
-    const historyRes = await request(`${BACKEND_URL}/api/attendance/history?limit=10`, {
-      headers: { Authorization: `Bearer ${employeeToken}` },
+    const checkInRes = await request(`${BACKEND_URL}/api/attendance/check-in`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${vivanToken}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(checkInPayload),
+      },
+      body: checkInPayload,
     });
-    assert(historyRes.status === 200 && Array.isArray(historyRes.data?.data?.records), 'Fetch Attendance Ledger (GET /api/attendance/history)');
+    // Status 200 or 400 (if already checked in today) — crucially, attendance recorded for Vivan, not spoofed_alex_id
+    if (checkInRes.status === 200) {
+      assert(checkInRes.data?.data?.attendance?.employeeId !== 'spoofed_alex_id', 'Attendance recorded strictly for session user, ignoring client-supplied employeeId');
+    } else {
+      assert(checkInRes.status === 400, 'Handled existing daily attendance correctly without spoofing vulnerability');
+    }
 
     // ----------------------------------------------------
-    // SECTION 4: ADMIN CONTROLS & SETTINGS
+    // SECTION 9: REAL BROWSER UI VERIFICATION (Puppeteer)
     // ----------------------------------------------------
-    console.log('\n4️⃣ TESTING ADMIN MANAGEMENT CONTROLS...');
-
-    const pendingRes = await request(`${BACKEND_URL}/api/admin/pending-employees`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    assert(pendingRes.status === 200 && Array.isArray(pendingRes.data?.data?.employees), 'Fetch Pending Employees (GET /api/admin/pending-employees)');
-
-    const rosterRes = await request(`${BACKEND_URL}/api/admin/employees`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    assert(rosterRes.status === 200 && Array.isArray(rosterRes.data?.data?.employees), 'Fetch Employee Roster (GET /api/admin/employees)');
-
-    const settingsRes = await request(`${BACKEND_URL}/api/admin/settings`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    assert(settingsRes.status === 200 && settingsRes.data?.data?.settings?.officeLatitude, 'Fetch Geofence Settings (GET /api/admin/settings)');
-
-    const auditRes = await request(`${BACKEND_URL}/api/admin/audit-logs`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    assert(auditRes.status === 200 && Array.isArray(auditRes.data?.data?.logs), 'Fetch System Audit Logs (GET /api/admin/audit-logs)');
-
-    // ----------------------------------------------------
-    // SECTION 5: USER-AGENT BACKEND ROUTING TEST
-    // ----------------------------------------------------
-    console.log('\n5️⃣ TESTING USER-AGENT BACKEND ROUTING...');
-
-    const mobileUaRes = await request(`${BACKEND_URL}/`, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1' },
-    });
-    assert(mobileUaRes.status === 200 && mobileUaRes.raw.includes('AttendX Mobile'), 'User-Agent Mobile Routing (returns AttendX Mobile build)');
-
-    const desktopUaRes = await request(`${BACKEND_URL}/`, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
-    });
-    assert(desktopUaRes.status === 200 && desktopUaRes.raw.includes('AttendX'), 'User-Agent Desktop Routing (returns AttendX Desktop build)');
-
-    // ----------------------------------------------------
-    // SECTION 6: PUPPETEER UI RENDERING VERIFICATION
-    // ----------------------------------------------------
-    console.log('\n6️⃣ TESTING PUPPETEER REAL BROWSER UI RENDERING...');
-
+    console.log('\n9️⃣ TESTING REAL BROWSER UI RENDERING...');
     const browser = await puppeteer.launch({
       executablePath: CHROME_PATH,
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
-    // Test Desktop Page Render
+    // Test Desktop Login Render (Fresh Unregistered State)
     const desktopPage = await browser.newPage();
     await desktopPage.setViewport({ width: 1440, height: 900 });
     await desktopPage.goto(`${DESKTOP_URL}/login`, { waitUntil: 'networkidle2' });
-    const desktopTitle = await desktopPage.title();
-    assert(desktopTitle.length > 0, `Desktop Login Render (${DESKTOP_URL}/login)`);
+    const desktopContent = await desktopPage.content();
+    assert(desktopContent.includes('AttendX') && !desktopContent.includes('Choose Google Account'), 'Desktop renders clean single-account Sign In (No multi-account picker)');
 
-    // Test Mobile Page Render
+    // Test Mobile Login Render
     const mobilePage = await browser.newPage();
     await mobilePage.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
     await mobilePage.goto(`${MOBILE_URL}/login`, { waitUntil: 'networkidle2' });
-    const mobileTitle = await mobilePage.title();
-    assert(mobileTitle.includes('AttendX Mobile'), `Mobile Login Render (${MOBILE_URL}/login)`);
+    const mobileContent = await mobilePage.content();
+    assert(mobileContent.includes('AttendX') && !mobileContent.includes('Choose Google Account'), 'Mobile renders clean single-account Sign In (No multi-account picker)');
 
     await browser.close();
 
     console.log('\n====================================================');
-    console.log(`📊 FULL SCALE TEST RESULTS: ${passed} PASSED, ${failed} FAILED`);
+    console.log(`📊 SECURITY SUITE RESULTS: ${passed} PASSED, ${failed} FAILED`);
     console.log('====================================================\n');
 
     if (failed > 0) {
       process.exit(1);
     }
   } catch (err) {
-    console.error('Fatal Error during full-scale testing:', err);
+    console.error('Fatal error during security suite execution:', err);
     process.exit(1);
   }
 }

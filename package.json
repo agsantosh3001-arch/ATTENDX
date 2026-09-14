@@ -12,5 +12,8 @@
   },
   "dependencies": {
     "@prisma/client": "^6.3.1"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.10.0"
   }
 }

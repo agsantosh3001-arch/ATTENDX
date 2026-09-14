@@ -60,10 +60,11 @@ async function seedData() {
   });
   console.log(`Admin user created/updated: ${admin.email}`);
 
-  // 3. Approved Employee: VIVAN
+  // 3. Approved Employee: Vivan Agarwal
   const vivan = await prisma.user.upsert({
     where: { email: 'vivaninteriors@gmail.com' },
     update: {
+      fullName: 'Vivan Agarwal',
       role: 'employee',
       status: 'approved',
       department: 'Engineering',
@@ -72,8 +73,8 @@ async function seedData() {
     create: {
       email: 'vivaninteriors@gmail.com',
       googleId: 'google_mock_vivan',
-      fullName: 'VIVAN',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=VIVAN',
+      fullName: 'Vivan Agarwal',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Vivan',
       role: 'employee',
       status: 'approved',
       department: 'Engineering',
@@ -82,57 +83,32 @@ async function seedData() {
       phoneNumber: '+91 9876543210',
     },
   });
-  console.log(`Approved employee created/updated: ${vivan.email}`);
+  console.log(`Approved employee created/updated: ${vivan.email} (${vivan.fullName})`);
 
-  // 4. Approved Employee: Alex Rivera
-  const alex = await prisma.user.upsert({
-    where: { email: 'alex.rivera@attendx.com' },
+  // 4. Approved Employee: Aman Rajak
+  const aman = await prisma.user.upsert({
+    where: { email: 'vikashreal2@gmail.com' },
     update: {
+      fullName: 'Aman Rajak',
       role: 'employee',
       status: 'approved',
-      department: 'Product & Design',
-      designation: 'Senior Product Manager',
+      department: 'Operations',
+      designation: 'Senior Specialist',
     },
     create: {
-      email: 'alex.rivera@attendx.com',
-      googleId: 'google_mock_alex',
-      fullName: 'Alex Rivera',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex',
+      email: 'vikashreal2@gmail.com',
+      googleId: 'google_mock_aman',
+      fullName: 'Aman Rajak',
+      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aman',
       role: 'employee',
       status: 'approved',
-      department: 'Product & Design',
-      designation: 'Senior Product Manager',
-      age: 30,
+      department: 'Operations',
+      designation: 'Senior Specialist',
+      age: 25,
       phoneNumber: '+91 9876543211',
     },
   });
-  console.log(`Approved employee created/updated: ${alex.email}`);
-
-  // 5. Pending Employee: Sarah Connor
-  const sarah = await prisma.user.upsert({
-    where: { email: 'sarah.connor@attendx.com' },
-    update: {
-      role: 'employee',
-      status: 'pending',
-      department: 'Operations',
-      designation: 'Operations Specialist',
-    },
-    create: {
-      email: 'sarah.connor@attendx.com',
-      googleId: 'google_mock_sarah',
-      fullName: 'Sarah Connor',
-      avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-      role: 'employee',
-      status: 'pending',
-      department: 'Operations',
-      designation: 'Operations Specialist',
-      age: 26,
-      phoneNumber: '+91 9876543212',
-    },
-  });
-  console.log(`Pending employee created/updated: ${sarah.email}`);
-
-  console.log(`Pending employee created/updated: ${sarah.email}`);
+  console.log(`Approved employee created/updated: ${aman.email} (${aman.fullName})`);
 
   // Clean out sample/synthetic attendance records so only actual live and preceding entries remain
   const deleted = await prisma.attendance.deleteMany({});

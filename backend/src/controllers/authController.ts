@@ -122,3 +122,18 @@ export async function getMe(req: Request, res: Response, next: NextFunction): Pr
     next(error);
   }
 }
+
+export async function getDeviceStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const deviceId = req.cookies?.attendx_device_id || (req.headers['x-device-id'] as string);
+    const status = await authService.getDeviceStatus(deviceId);
+    res.status(200).json({
+      success: true,
+      data: status,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+

@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { Header } from './components/layout/Header';
 import { LoginPage } from './pages/LoginPage';
-import { GooglePickerPage } from './pages/GooglePickerPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { PendingApprovalPage } from './pages/PendingApprovalPage';
 import { EmployeeDashboard } from './pages/EmployeeDashboard';
@@ -84,7 +83,6 @@ export const App: React.FC = () => {
               <main className="flex-1">
                 <Routes>
                   <Route path="/login" element={<LoginPage />} />
-                  <Route path="/google-picker" element={<GooglePickerPage />} />
                   <Route path="/onboarding" element={<OnboardingPage />} />
                   <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
