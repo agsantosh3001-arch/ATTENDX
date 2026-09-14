@@ -4,7 +4,7 @@
   "private": true,
   "description": "AttendX - GPS-Based Enterprise Attendance & Workforce Management System",
   "scripts": {
-    "vercel-build": "cd backend && npm install && npx prisma generate && npm run build && cd ../frontend && npm install && npm run build",
+    "vercel-build": "cd backend && npm install && npx prisma generate && npm run build && cd ../frontend && npm install && npm run build && cd ../mobile && npm install && npm run build",
     "build": "cd backend && npm install && npx prisma generate && npm run build && cd ../frontend && npm install && npm run build && cd ../mobile && npm install && npm run build",
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
